@@ -86,6 +86,23 @@ func newConfig() Config {
 	}
 }
 
+func (c Config) Write(path string) error {
+	b, err := c.ExportJSON()
+	if err != nil {
+		return err
+	}
+	_, err = createFile(path, b)
+	return err
+}
+
+func (c Config) ExportJSON() ([]byte, error) {
+	return json.MarshalIndent(c, "", "  ")
+}
+
+func (c *Config) ParseJSON(data []byte) error {
+	return json.Unmarshal(data, c)
+}
+
 func GenerateConfigJSON(user, password, database string) ([]byte, error) {
 	conf := newConfig()
 	if user != "" {
