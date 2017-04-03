@@ -19,8 +19,6 @@ type (
 	Config struct {
 		PackageRoot         string                       `json:"packageRoot"`
 		CommonColumns       []string                     `json:"commonColumns"`
-		GenSliceFunctions   string                       `json:"genSliceFunctions"`
-		EnvNameOnlyTest     string                       `json:"envNameOnlyTest"`
 		MysqlConfig         MysqlConfig                  `json:"mysqlConfig"`
 		OutputJSONPath      string                       `json:"outputJsonPath"`
 		OutputSourcePath    string                       `json:"outputSourcePath"`
@@ -56,12 +54,10 @@ func newConfig() Config {
 			Password: "",
 			DbName:   "",
 		},
-		PackageRoot:     getPackageRoot(),
-		EnvNameOnlyTest: "VALENCIA_MEDIA_API_TEST",
+		PackageRoot: getPackageRoot(),
 		IgnoreTableNames: []string{
 			"goose_db_version",
 		},
-		GenSliceFunctions: "All,Any,First,GroupBy[string],GroupBy[uint],SortBy,Where",
 		CommonColumns: []string{
 			"created_at",
 			"updated_at",
