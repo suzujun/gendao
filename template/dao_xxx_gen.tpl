@@ -11,6 +11,9 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 	"gopkg.in/gorp.v1"
+
+	"{{ .Config.PackageRoot }}/model"
+	"{{ .Config.PackageRoot }}/dao/ranger"
 )
 {{$TableNamePascal := .Table.NameByPascalcase}}
 {{$TableNameCamel := .Table.NameByCamelcase}}

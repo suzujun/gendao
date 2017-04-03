@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -16,6 +17,7 @@ type (
 		ReadAt time.Time
 	}
 	Config struct {
+		PackageRoot         string                       `json:"packageRoot"`
 		CommonColumns       []string                     `json:"commonColumns"`
 		GenSliceFunctions   string                       `json:"genSliceFunctions"`
 		EnvNameOnlyTest     string                       `json:"envNameOnlyTest"`
@@ -54,6 +56,7 @@ func newConfig() Config {
 			Password: "",
 			DbName:   "",
 		},
+		PackageRoot:     getPackageRoot(),
 		EnvNameOnlyTest: "VALENCIA_MEDIA_API_TEST",
 		IgnoreTableNames: []string{
 			"goose_db_version",
@@ -66,8 +69,8 @@ func newConfig() Config {
 		OutputJSONPath:    "./out",
 		OutputSourcePath:  "./src",
 		InputTemplatePath: "./template",
-		TemplateByOnce: []TemplateFile{
-			{Name: "model.tpl", ExportName: "model/model.go"}, // dao/model.go
+		TemplateByOnce:    []TemplateFile{
+		// {Name: "model.tpl", ExportName: "model/model.go"}, // dao/model.go
 		},
 		TemplateToTableLoop: []TemplateFile{
 			{Name: "dao_xxx.tpl", ExportName: "dao/{name}.go", Overwrite: false},          // dao/channel.go
@@ -187,7 +190,7 @@ func (cmd Command) GenerateSourceFromJSON(table string) error {
 			return err
 		}
 
-		pTable := newTamplateParamTable(table, config.CommonColumns, config.CustomColumnType)
+		pTable := newTamplateParamTable(cmd.Config.PackageRoot, table, config.CommonColumns, config.CustomColumnType)
 		data := TemplateData{
 			Config: cmd.Config,
 			Table:  pTable,
@@ -240,4 +243,15 @@ func filterCommonColumns(tables []TemplateDataTable) []TemplateDataColumn {
 		}
 	}
 	return nil
+}
+
+func getPackageRoot() string {
+	pwd, err := os.Getwd()
+	if err != nil {
+		fmt.Println("error: ", err.Error())
+		return ""
+	}
+	gopath := os.Getenv("GOPATH")
+	re := regexp.MustCompile(fmt.Sprintf("^%s/src/", gopath))
+	return re.ReplaceAllString(pwd, "")
 }

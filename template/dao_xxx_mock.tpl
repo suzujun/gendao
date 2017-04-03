@@ -11,6 +11,9 @@ import (
 	"fmt"
 	"reflect"
 	"sync"
+
+	"{{ .Config.PackageRoot }}/model"
+	"{{ .Config.PackageRoot }}/dao/ranger"
 )
 {{$TableNamePascal := .Table.NameByPascalcase}}
 {{$TableNameCamel := .Table.NameByCamelcase}}

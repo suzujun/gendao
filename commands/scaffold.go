@@ -130,7 +130,7 @@ func (my MyTemplate) outputSourceFileTable(data TemplateData) error {
 	return nil
 }
 
-func newTamplateParamTable(table MysqlTableJSON, commonColumns []string, customTypeMap map[string]*CustomColumnType) TemplateDataTable {
+func newTamplateParamTable(packageRoot string, table MysqlTableJSON, commonColumns []string, customTypeMap map[string]*CustomColumnType) TemplateDataTable {
 	pTable := TemplateDataTable{}
 	if len(table.Columns) == 0 {
 		return pTable
@@ -174,8 +174,8 @@ func newTamplateParamTable(table MysqlTableJSON, commonColumns []string, customT
 			v := fmt.Sprintf("%s \"%s\"", alias, pkg)
 			if m, _ := regexp.MatchString("^[a-z0-9/]+$", pkg); m { // standard library
 				pTable.UsePackages[0] = append(pTable.UsePackages[0], v)
-			// } else if m, _ := regexp.MatchString("^gopath/", pkg); m { // TODO match gopath
-			// 	pTable.UsePackages[2] = append(pTable.UsePackages[2], v)
+			} else if m, _ := regexp.MatchString("^"+packageRoot, pkg); m { // my package
+				pTable.UsePackages[2] = append(pTable.UsePackages[2], v)
 			} else {
 				pTable.UsePackages[1] = append(pTable.UsePackages[1], v) // other library
 			}
