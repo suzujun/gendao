@@ -49,10 +49,10 @@ func new{{$TableNamePascal}}(dbm, dbs *gorp.DbMap) *{{$TableNamePascal}}Dao {
 // {{.Name}} get {{$TableNameCamel}} with {{range $i, $p := .Params}}{{if ne $i 0}} and {{end}}{{.NameByCamelcase}}{{end}}
 func (dao {{ $TableNamePascal }}Dao) {{template "part_method_name.tpl" .}} {
 	builder := dao.newSelectBuilder(){{range .Params}}{{if .Where}}.
-		Where(sq.Eq{"{{.Name}}": {{.NameByCamelcase}}}){{end}}{{end}}{{if .ReturnMany}}.{{$desc := .Desc}}
-		OrderBy({{range $i, $p := .Orders}}{{if ne $i 0}}, {{end}}"{{.Name}}{{if $desc}} desc{{end}}"{{end}}).
-		Limit(limit){{if .RangeParam}}
-	builder = ranger.SetWhere(builder, "{{.RangeParam.Name}}", rangeFncs){{end}}
+		Where(sq.Eq{"{{.Name}}": {{.NameByCamelcase}}}){{end}}{{end}}{{if .Orders}}.{{$desc := .Desc}}
+		OrderBy({{range $i, $p := .Orders}}{{if ne $i 0}}, {{end}}"{{.Name}}{{if $desc}} desc{{end}}"{{end}}){{end}}{{range .Params}}{{if eq .Name "limit"}}.
+		Limit(limit){{end}}{{end}}{{if .RangeParam}}
+	builder = ranger.SetWhere(builder, "{{.RangeParam.Name}}", rangeFncs){{end}}{{if .ReturnMany}}
 	return dao.findManyByBuilder(&builder){{else}}
 	return dao.findOneByBuilder(&builder){{end}}
 }

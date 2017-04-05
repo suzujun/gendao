@@ -38,17 +38,24 @@ func GenCustomMethods(tIndex TemplateDataIndex, modelName string) []CustomMethod
 		params := convCustomMethodParams(columns[:i+1], true)
 		orders := columns
 		if i == max-1 && tIndex.Unique {
+			// e.g. FindByID(id) return one
 			methods = append(methods, genCustomMethod(params, nil, nil, modelName, tIndex.Unique, false, false))
 		} else {
+			// e.g. FindByIdOrderByIDAsc(id, limit) return many
+			// e.g. FindByIdOrderByIDDesc(id, limit) return many
 			methods = append(methods, genCustomMethod(params, nil, orders, modelName, tIndex.Unique, true, false)) // ASC
 			methods = append(methods, genCustomMethod(params, nil, orders, modelName, tIndex.Unique, true, true))  // DESC
 		}
 		params = convCustomMethodParams(columns[:i], true)
 		rangeParam := newCustomMethodParam(column.Name, column.Type, false)
+		// e.g. FindByIds(ids...) return many
+		methods = append(methods, genCustomMethod(params, &rangeParam, nil, modelName, tIndex.Unique, true, false))
+		// e.g. FindByIdsOrderByIDAsc(limit, rangeFunc...) return many
+		// e.g. FindByIdsOrderByIDDesc(limit, rangeFunc...) return many
 		methods = append(methods, genCustomMethod(params, &rangeParam, orders, modelName, tIndex.Unique, true, false)) // ASC
 		methods = append(methods, genCustomMethod(params, &rangeParam, orders, modelName, tIndex.Unique, true, true))  // DESC
 	}
-	var res []CustomMethod
+	res := make([]CustomMethod, 0, len(methods))
 	for _, m := range methods {
 		if m == nil {
 			continue
@@ -59,10 +66,11 @@ func GenCustomMethods(tIndex TemplateDataIndex, modelName string) []CustomMethod
 }
 
 func newCustomMethodParam(name, typ string, where bool) CustomMethodParam {
+	wc := NewWordConverter(name)
 	return CustomMethodParam{
 		Name:             name,
-		NameByCamelcase:  ConvCamelcase(name, true),
-		NameByPascalcase: ConvPascalcase(name, true),
+		NameByCamelcase:  wc.Camelcase().Lint().ToString(),
+		NameByPascalcase: wc.Pascalcase().Lint().ToString(),
 		Type:             typ,
 		Where:            where,
 	}
@@ -82,27 +90,25 @@ func genCustomMethod(params CustomMethodParams, rangeParam *CustomMethodParam, o
 		method.RangeParam = rangeParam
 	}
 	if len(orders) > 0 {
-		limit := CustomMethodParam{
-			Name:             "limit",
-			NameByPascalcase: "Pimit",
-			NameByCamelcase:  "limit",
-			Type:             "uint64",
-		}
+		limit := newCustomMethodParam("limit", "uint64", false)
 		method.Params = append(method.Params, limit)
 		if rangeParam != nil {
 			typ := getRangeFncType(rangeParam.Type)
 			if typ == "" {
 				return nil
 			}
-			rangeFncs := CustomMethodParam{
-				Name:             "range_fncs",
-				NameByPascalcase: "RangeFncs",
-				NameByCamelcase:  "rangeFncs",
-				Type:             "..." + typ,
-			}
+			rangeFncs := newCustomMethodParam("range_fncs", "..."+typ, false)
 			method.Params = append(method.Params, rangeFncs)
 		}
 		method.Orders = convCustomMethodParams(orders, false)
+	}
+	if len(orders) == 0 && rangeParam != nil {
+		name := NewWordConverter(rangeParam.Name).Pluralize().ToString()
+		typ := fmt.Sprintf("[]%s", rangeParam.Type)
+		rp := newCustomMethodParam(name, typ, true)
+		rp.Name = rangeParam.Name // set original name
+		method.Params = append(method.Params, rp)
+		method.RangeParam = nil
 	}
 	method.ReturnModel = modelName
 	method.Unique = unique
@@ -120,15 +126,15 @@ func (cm *CustomMethod) setName() {
 		}
 	}
 	if cm.RangeParam != nil {
-		names = append(names, ConvPascalcasePluralize(cm.RangeParam.Name, true))
+		names = append(names, NewWordConverter(cm.RangeParam.Name).Pascalcase().Pluralize().Lint().ToString())
 	}
 	names = []string{"FindBy", strings.Join(names, "And")}
 	if len(cm.Orders) > 0 {
+		ascDesc := "Asc"
 		if cm.Desc {
-			names = append(names, "OrderBy", cm.Orders.joinName(""), "Desc")
-		} else {
-			names = append(names, "OrderBy", cm.Orders.joinName(""), "Asc")
+			ascDesc = "Desc"
 		}
+		names = append(names, "OrderBy", cm.Orders.joinName(""), ascDesc)
 	}
 	cm.Name = strings.Join(names, "")
 }
@@ -137,7 +143,7 @@ func (cmps CustomMethodParams) joinName(sep string) string {
 	res := make([]string, len(cmps))
 	for i, cmp := range cmps {
 		if i == len(cmps)-1 {
-			res[i] = ConvPascalcase(cmp.Name, true)
+			res[i] = NewWordConverter(cmp.Name).Pascalcase().Lint().ToString()
 		} else {
 			res[i] = cmp.NameByPascalcase
 		}

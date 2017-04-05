@@ -109,7 +109,7 @@ func (my MyTemplate) outputSourceFileTable(data TemplateData) error {
 		if err := tmpl.Execute(buff, data); err != nil {
 			return err
 		}
-		name := ConvSingularize(data.Table.Name)
+		name := NewWordConverter(data.Table.Name).Singularize().ToString()
 		path := strings.Replace(config.ExportPathName, "{name}", name, -1)
 		var res int
 		var err error
@@ -136,8 +136,8 @@ func newTamplateParamTable(packageRoot string, table MysqlTableJSON, commonColum
 		return pTable
 	}
 	pTable.Name = table.Columns[0].TableName
-	pTable.NameByCamelcase = ConvCamelcaseSingularize(table.Columns[0].TableName, false)
-	pTable.NameByPascalcase = ConvPascalcaseSingularize(table.Columns[0].TableName, false)
+	pTable.NameByCamelcase = NewWordConverter(table.Columns[0].TableName).Camelcase().Singularize().ToString()
+	pTable.NameByPascalcase = NewWordConverter(table.Columns[0].TableName).Pascalcase().Singularize().ToString()
 	pTable.Columns = []TemplateDataColumn{}
 
 	// get column info
@@ -158,6 +158,7 @@ func newTamplateParamTable(packageRoot string, table MysqlTableJSON, commonColum
 		}
 	}
 	// get index info
+	methods := []CustomMethod{}
 	indexs := newTemplateParamIndex(table.Indexs, pTable.Columns)
 	for _, index := range indexs {
 		if index.Primary {
@@ -165,7 +166,17 @@ func newTamplateParamTable(packageRoot string, table MysqlTableJSON, commonColum
 		} else {
 			pTable.Indexs = append(pTable.Indexs, index)
 		}
-		pTable.CustomMethods = append(pTable.CustomMethods, GenCustomMethods(index, pTable.NameByPascalcase)...)
+		methods = append(methods, GenCustomMethods(index, pTable.NameByPascalcase)...)
+	}
+	// deduplication
+	methodMap := map[string]bool{}
+	pTable.CustomMethods = make([]CustomMethod, 0, len(methods))
+	for _, m := range methods {
+		if methodMap[m.Name] {
+			continue
+		}
+		methodMap[m.Name] = true
+		pTable.CustomMethods = append(pTable.CustomMethods, m)
 	}
 	// using packages
 	if len(packageMap) > 0 {
@@ -190,8 +201,8 @@ func newTamplateParamTable(packageRoot string, table MysqlTableJSON, commonColum
 func newTemplateParamColumn(column MysqlColumn, commonColumns []string, customType *CustomColumnType) TemplateDataColumn {
 	tpc := TemplateDataColumn{MysqlColumn: column}
 	tpc.Name = column.ColumnName
-	tpc.NameByCamelcase = ConvCamelcase(column.ColumnName, true)
-	tpc.NameByPascalcase = ConvPascalcase(column.ColumnName, true)
+	tpc.NameByCamelcase = NewWordConverter(column.ColumnName).Camelcase().Lint().ToString()
+	tpc.NameByPascalcase = NewWordConverter(column.ColumnName).Pascalcase().Lint().ToString()
 	tpc.Primary = column.Primary()
 	tpc.Unique = column.Unique()
 	tpc.Common = stringsContains(commonColumns, column.ColumnName)

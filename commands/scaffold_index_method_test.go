@@ -10,8 +10,8 @@ func TestScaffoldIndexMethod_GenCustomMethods(t *testing.T) {
 	genTemplateDataColumn := func(name, typ string) TemplateDataColumn {
 		return TemplateDataColumn{
 			Name:             name,
-			NameByCamelcase:  ConvCamelcase(name, true),
-			NameByPascalcase: ConvPascalcase(name, true),
+			NameByCamelcase:  NewWordConverter(name).Camelcase().Lint().ToString(),
+			NameByPascalcase: NewWordConverter(name).Pascalcase().Lint().ToString(),
 			Type:             typ,
 		}
 	}
