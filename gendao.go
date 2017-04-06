@@ -1,16 +1,17 @@
 package main
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 
-	"github.com/suzujun/gendao/commands"
-
-	"errors"
-
 	"gopkg.in/urfave/cli.v1"
+
+	"github.com/suzujun/gendao/commands"
 )
 
 func main() {
@@ -66,6 +67,12 @@ func main() {
 			Flags:     []cli.Flag{dFlag, databaseFlag},
 		},
 		cli.Command{
+			Name:      "addtype",
+			Usage:     "Generate tables JSON from database",
+			ArgsUsage: "{config file path}",
+			Action:    addTypeAction,
+		},
+		cli.Command{
 			Name:      "gen",
 			Usage:     "Generate source code from JSON",
 			ArgsUsage: "{config file path}",
@@ -107,6 +114,87 @@ func pullAction(c *cli.Context) error {
 	if err := cmd.GenerateJSON(); err != nil {
 		return err
 	}
+	fmt.Println("ok.")
+	return nil
+}
+
+func addTypeAction(c *cli.Context) error {
+	path := c.Args().First()
+	dbname := getFlag(c, "database", "d")
+	cmd, err := getConfig(path, dbname)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(`
+This utility will walk you through setting a custom type for table column.
+When inputting to the end, it saves it in the specified json file.
+Press ^C at any time to quit.`)
+
+	var key, typ, sampleValue, pkg, pkgAlias string
+
+	for {
+		fmt.Print("key: (table.column) ")
+		fmt.Scanf("%s", &key)
+		matched, err := regexp.MatchString("^\\w+\\.{1}\\w+$", key)
+		if err != nil {
+			return err
+		}
+		if matched {
+			break
+		}
+		fmt.Println(fmt.Sprintf("Invalid key: \"%s\"", key))
+	}
+
+	// check duplicate
+	if cmd.Config.CustomColumnType[key] != nil {
+		var answer string
+		fmt.Println("The selected key already exists.\nDo you want to overwrite? (yes) ")
+		fmt.Scanf("%s", &answer)
+		if answer != "yes" {
+			return nil
+		}
+	}
+
+	fmt.Print("type: ")
+	fmt.Scanf("%s", &typ)
+	fmt.Print("sample value: ")
+	fmt.Scanf("%s", &sampleValue)
+
+	fmt.Print("package: (github.com/path/to) ")
+	fmt.Scanf("%s", &pkg)
+	if pkg != "" {
+		fmt.Print("package alias: ")
+		fmt.Scanf("%s", &pkgAlias)
+	}
+
+	data := commands.CustomColumnType{
+		Type:         typ,
+		SampleValue:  sampleValue,
+		Package:      pkg,
+		PackageAlias: pkgAlias,
+	}
+	preview := map[string]interface{}{key: data}
+	b, err := json.MarshalIndent(preview, "", "  ")
+	if err != nil {
+		return err
+	}
+	fmt.Println(fmt.Sprintf("About to write to \"%s\"", path))
+	fmt.Println(string(b))
+
+	var answer string
+	fmt.Println("Is this ok? (yes) ")
+	fmt.Scanf("%s", &answer)
+	if answer != "yes" {
+		return nil
+	}
+
+	// update config
+	cmd.Config.CustomColumnType[key] = &data
+	if err := cmd.Config.Write(path); err != nil {
+		return err
+	}
+
 	fmt.Println("ok.")
 	return nil
 }
