@@ -1,5 +1,6 @@
 # Gendao
 
+[![CircleCI](https://circleci.com/gh/suzujun/gendao/tree/master.svg?style=shield&circle-token=a6f399037d30cbc591f227f63163f77f8c5ac976)](https://circleci.com/gh/suzujun/gendao/tree/master)
 [![Build Status](https://travis-ci.org/suzujun/gendao.svg?branch=master)](https://travis-ci.org/suzujun/gendao)
 
 Gendao is generate DAO and Model source code using templates.
