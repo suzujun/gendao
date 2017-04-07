@@ -130,7 +130,7 @@ func (my MyTemplate) outputSourceFileTable(data TemplateData) error {
 	return nil
 }
 
-func newTamplateParamTable(packageRoot string, table MysqlTableJSON, commonColumns []string, customTypeMap map[string]*CustomColumnType) TemplateDataTable {
+func newTamplateParamTable(packageRoot string, table MysqlTable, commonColumns []string, customTypeMap map[string]*CustomColumnType) TemplateDataTable {
 	pTable := TemplateDataTable{}
 	if len(table.Columns) == 0 {
 		return pTable

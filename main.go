@@ -96,7 +96,7 @@ func initAction(c *cli.Context) error {
 	user := getFlag(c, "user", "u")
 	password := getFlag(c, "password", "p")
 	dbname := getFlag(c, "database", "d")
-	b, err := commands.GenerateConfigJSON(user, password, dbname)
+	b, err := commands.NewConfig(user, password, dbname).ExportJSON()
 	if err != nil {
 		return err
 	}
@@ -226,7 +226,7 @@ func getConfig(path, dbName string) (*commands.Command, error) {
 		fmt.Println("Please set the config.json created with the \"init\" command")
 		return nil, errors.New("")
 	}
-	cmd, err := commands.GetCommand(path, dbName)
+	cmd, err := commands.NewCommandFromJSON(path, dbName)
 	if err != nil {
 		return nil, err
 	}

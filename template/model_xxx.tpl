@@ -17,7 +17,7 @@ import (
 {{$TableNameCamel := .Table.NameByCamelcase}}
 {{$CommonColumns := .Config.CommonColumns}}
 // {{ print $TableNamePascal " " $TableNameCamel }} model
-// +gen slice:"All,Any,First,GroupBy[string],GroupBy[uint],SortBy,Where"
+// +gen slice:"GroupBy[string],Select[string],SortBy,Where"
 type {{ $TableNamePascal }} struct { {{range .Table.Columns}}{{if contains $CommonColumns .Name}}{{else}}
   {{ print .NameByPascalcase " " .Type "`db:\"" .Name "\"`" }}{{end}}{{end}}
   Model

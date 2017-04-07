@@ -14,18 +14,6 @@ const (
 	buffSize = 1024
 )
 
-// isDir returns true if path is a directory.
-func isDir(path string) error {
-	info, err := os.Stat(path)
-	if err != nil {
-		return err
-	}
-	if !info.IsDir() {
-		return fmt.Errorf("not such directory")
-	}
-	return nil
-}
-
 func readFile(path string) ([]byte, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -45,12 +33,15 @@ func readFileJSON(path string, v interface{}) error {
 
 // createDirIfNotExist creates the directory to path if it doesn't exist.
 func createDirIfNotExist(path string) error {
-	err := isDir(path)
-	if os.IsNotExist(err) {
-		os.MkdirAll(path, dirPerm)
+	info, err := os.Stat(path)
+	if err != nil {
+		return err
+	}
+	if info.IsDir() {
 		return nil
 	}
-	return err
+	os.MkdirAll(path, dirPerm)
+	return nil
 }
 
 // createFile creates the file if it doesn't exist.

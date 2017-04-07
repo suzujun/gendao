@@ -2,11 +2,13 @@ package commands
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
+	// "gopkg.in/gorp.v2"
 )
 
 type (
@@ -16,7 +18,7 @@ type (
 		dbname   string
 		db       *sql.DB
 	}
-	MysqlTableJSON struct {
+	MysqlTable struct {
 		Catalog string        `json:"catalog"`
 		Schema  string        `json:"schema"`
 		Name    string        `json:"name"`
@@ -109,7 +111,7 @@ func (con *MysqlConnection) Close() error {
 	return con.db.Close()
 }
 
-func (con *MysqlConnection) GetTables() ([]string, error) {
+func (con *MysqlConnection) GetTableNames() ([]string, error) {
 
 	if con.db == nil {
 		return nil, errors.New("database is closed")
@@ -129,6 +131,35 @@ func (con *MysqlConnection) GetTables() ([]string, error) {
 		tnames = append(tnames, tname)
 	}
 	return tnames, nil
+}
+
+func (con *MysqlConnection) GetMysqlTable(tableName string) (*MysqlTable, error) {
+	columns, err := con.GetColumns(tableName)
+	if err != nil {
+		return nil, err
+	}
+	indexs, err := con.GetIndexs(tableName)
+	if err != nil {
+		return nil, err
+	}
+	mt := MysqlTable{}
+	mt.Columns = columns
+	mt.Indexs = indexs
+	if len(columns) > 0 {
+		mt.Catalog = columns[0].TableCatalog
+		mt.Schema = columns[0].TableSchema
+		mt.Name = columns[0].TableName
+	}
+	return &mt, nil
+}
+
+func (mt MysqlTable) WriteJSON(path string) error {
+	jsonBytes, err := json.MarshalIndent(mt, "", "  ")
+	if err != nil {
+		return err
+	}
+	_, err = createFile(path, jsonBytes)
+	return err
 }
 
 func (con *MysqlConnection) GetColumns(tname string) ([]MysqlColumn, error) {
