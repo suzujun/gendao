@@ -23,7 +23,7 @@ type (
 		Schema  string        `json:"schema"`
 		Name    string        `json:"name"`
 		Columns []MysqlColumn `json:"columns"`
-		Indexs  []MysqlIndex  `json:"indexs"`
+		Indexes []MysqlIndex  `json:"indexes"`
 	}
 	MysqlColumn struct {
 		TableCatalog           string      `json:"tableCatalog" db:"TABLE_CATALOG"`
@@ -138,13 +138,13 @@ func (con *MysqlConnection) GetMysqlTable(tableName string) (*MysqlTable, error)
 	if err != nil {
 		return nil, err
 	}
-	indexs, err := con.GetIndexs(tableName)
+	indexes, err := con.GetIndexes(tableName)
 	if err != nil {
 		return nil, err
 	}
 	mt := MysqlTable{}
 	mt.Columns = columns
-	mt.Indexs = indexs
+	mt.Indexes = indexes
 	if len(columns) > 0 {
 		mt.Catalog = columns[0].TableCatalog
 		mt.Schema = columns[0].TableSchema
@@ -229,7 +229,7 @@ order by TABLE_NAME, ORDINAL_POSITION
 	return result, nil
 }
 
-func (con *MysqlConnection) GetIndexs(tname string) ([]MysqlIndex, error) {
+func (con *MysqlConnection) GetIndexes(tname string) ([]MysqlIndex, error) {
 
 	if con.db == nil {
 		return nil, errors.New("database is closed")

@@ -16,6 +16,7 @@ type (
 	}
 )
 
+// NewCommandFromJSON new command from json file
 func NewCommandFromJSON(configPath, dbName string) (*Command, error) {
 	b, err := readFile(configPath)
 	if err != nil {
@@ -32,6 +33,7 @@ func NewCommandFromJSON(configPath, dbName string) (*Command, error) {
 	return &com, nil
 }
 
+// GenerateJSON generate json file
 func (cmd Command) GenerateJSON() error {
 	dbconf := cmd.Config.MysqlConfig
 	con, err := NewConnection(dbconf.User, dbconf.Password, dbconf.DbName, false)
@@ -71,36 +73,18 @@ func (cmd Command) GenerateSourceFromJSON(table string) error {
 		return err
 	}
 
-	myTemplate, tmpErr := NewTemplate(config.InputTemplatePath, config.TemplateToTableLoop, config.OutputSourcePath)
-	if tmpErr != nil {
-		return tmpErr
+	myTemplate, err := NewTemplate(config.InputTemplatePath, config.TemplateToTableLoop, config.OutputSourcePath)
+	if err != nil {
+		return err
 	}
 
 	var pTables []TemplateDataTable
-	if err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
-		if info == nil || info.IsDir() {
-			return nil
-		}
-		if err != nil {
-			return err
-		}
-		name := info.Name()
-		tableName := name[:len(name)-5]
-		if len(targetTables) > 0 && !stringsContains(targetTables, tableName) {
-			return nil
-		}
-		if len(targetTables) == 0 && stringsContains(cmd.Config.IgnoreTableNames, tableName) {
-			fmt.Println("file:", name, "[ignore]")
-			return nil
-		}
-		fmt.Println("file:", name)
-
-		// read json file
+	var outputSource = func(path string) error {
 		var table MysqlTable
 		if err := readFileJSON(path, &table); err != nil {
 			return err
 		}
-
+		fmt.Println("file:", path)
 		pTable := newTamplateParamTable(cmd.Config.PackageRoot, table, config.CommonColumns, config.CustomColumnType)
 		data := TemplateData{
 			Config: cmd.Config,
@@ -111,8 +95,32 @@ func (cmd Command) GenerateSourceFromJSON(table string) error {
 		}
 		pTables = append(pTables, pTable)
 		return nil
-	}); err != nil {
-		return err
+	}
+
+	if len(targetTables) > 0 {
+		// Only specified file
+		for _, table := range targetTables {
+			path := fmt.Sprintf("%s/%s.json", path, table)
+			if err := outputSource(path); err != nil {
+				return err
+			}
+		}
+	} else {
+		// Target all files on the specified path
+		if err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+			if info == nil || info.IsDir() || err != nil {
+				return err
+			}
+			name := info.Name()
+			tableName := name[:len(name)-5] // remove ".json"
+			if len(targetTables) == 0 && stringsContains(cmd.Config.IgnoreTableNames, tableName) {
+				fmt.Println("file:", name, "[ignore]")
+				return nil
+			}
+			return outputSource(path)
+		}); err != nil {
+			return err
+		}
 	}
 
 	// --------------
@@ -123,9 +131,9 @@ func (cmd Command) GenerateSourceFromJSON(table string) error {
 		return nil
 	}
 
-	myTemplate, tmpErr = NewTemplate(config.InputTemplatePath, config.TemplateByOnce, config.OutputSourcePath)
-	if tmpErr != nil {
-		return tmpErr
+	myTemplate, err = NewTemplate(config.InputTemplatePath, config.TemplateByOnce, config.OutputSourcePath)
+	if err != nil {
+		return err
 	}
 
 	data := TemplateData{

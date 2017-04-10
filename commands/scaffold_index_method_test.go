@@ -15,7 +15,7 @@ func TestScaffoldIndexMethod_GenCustomMethods(t *testing.T) {
 			Type:             typ,
 		}
 	}
-	indexs := []TemplateDataIndex{
+	indexes := []TemplateDataIndex{
 		TemplateDataIndex{
 			Columns: []TemplateDataColumn{
 				genTemplateDataColumn("id", "string"),
@@ -40,7 +40,7 @@ func TestScaffoldIndexMethod_GenCustomMethods(t *testing.T) {
 			Primary: true,
 		},
 	}
-	for _, tIndex := range indexs {
+	for _, tIndex := range indexes {
 		methods := GenCustomMethods(tIndex, "Thumbnail")
 		for i, method := range methods {
 			params := make([]string, len(method.Params))

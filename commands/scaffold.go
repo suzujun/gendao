@@ -36,7 +36,7 @@ type (
 		ColumnsName      string
 		Columns          []TemplateDataColumn
 		PrimaryKey       TemplateDataIndex
-		Indexs           []TemplateDataIndex
+		Indexes           []TemplateDataIndex
 		UsePackages      [][]string
 		CustomMethods    []CustomMethod
 	}
@@ -163,12 +163,12 @@ func newTamplateParamTable(packageRoot string, table MysqlTable, commonColumns [
 	}
 	// get index info
 	methods := []CustomMethod{}
-	indexs := newTemplateParamIndex(table.Indexs, pTable.Columns)
-	for _, index := range indexs {
+	indexes := newTemplateParamIndex(table.Indexes, pTable.Columns)
+	for _, index := range indexes {
 		if index.Primary {
 			pTable.PrimaryKey = index
 		} else {
-			pTable.Indexs = append(pTable.Indexs, index)
+			pTable.Indexes = append(pTable.Indexes, index)
 		}
 		methods = append(methods, GenCustomMethods(index, pTable.NameByPascalcase)...)
 	}
@@ -221,10 +221,10 @@ func newTemplateParamColumn(column MysqlColumn, commonColumns []string, customTy
 	return tpc
 }
 
-func newTemplateParamIndex(indexs []MysqlIndex, pColumns []TemplateDataColumn) []TemplateDataIndex {
-	pIndexs := []TemplateDataIndex{}
-	if len(indexs) == 0 || len(pColumns) == 0 {
-		return pIndexs
+func newTemplateParamIndex(indexes []MysqlIndex, pColumns []TemplateDataColumn) []TemplateDataIndex {
+	pIndexes := []TemplateDataIndex{}
+	if len(indexes) == 0 || len(pColumns) == 0 {
+		return pIndexes
 	}
 	columnMap := map[string]*TemplateDataColumn{}
 	for i, pColumn := range pColumns {
@@ -232,10 +232,10 @@ func newTemplateParamIndex(indexs []MysqlIndex, pColumns []TemplateDataColumn) [
 	}
 	var pIndex *TemplateDataIndex
 	var beforeIndexName string
-	for _, index := range indexs {
+	for _, index := range indexes {
 		if beforeIndexName != index.IndexName {
 			if pIndex != nil {
-				pIndexs = append(pIndexs, *pIndex)
+				pIndexes = append(pIndexes, *pIndex)
 			}
 			pIndex = &TemplateDataIndex{Name: index.IndexName}
 			pIndex.Unique = index.NonUnique == 0
@@ -246,14 +246,14 @@ func newTemplateParamIndex(indexs []MysqlIndex, pColumns []TemplateDataColumn) [
 			pIndex.Columns = append(pIndex.Columns, *pColumn)
 		}
 	}
-	pIndexs = append(pIndexs, *pIndex)
-	for i, pIndex := range pIndexs {
+	pIndexes = append(pIndexes, *pIndex)
+	for i, pIndex := range pIndexes {
 		for _, column := range pIndex.Columns {
-			pIndexs[i].AutoIncrement = column.AutoIncrement
+			pIndexes[i].AutoIncrement = column.AutoIncrement
 			break
 		}
 	}
-	return pIndexs
+	return pIndexes
 }
 
 func (tdt *TemplateDataTable) CommonColumns() []TemplateDataColumn {
