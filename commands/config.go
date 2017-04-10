@@ -68,7 +68,7 @@ func newConfig() Config {
 			"created_at",
 			"updated_at",
 		},
-		OutputJSONPath:    "./out",
+		OutputJSONPath:    "./out/{dbname}",
 		OutputSourcePath:  "./src",
 		InputTemplatePath: "./template",
 		TemplateByOnce:    []TemplateFile{

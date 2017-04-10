@@ -39,7 +39,7 @@ func (cmd Command) GenerateJSON() error {
 		return err
 	}
 	defer con.Close()
-	outputPath := cmd.Config.OutputJSONPath + "/" + cmd.Config.MysqlConfig.DbName
+	outputPath := strings.Replace(cmd.Config.OutputJSONPath, "{dbname}", cmd.Config.MysqlConfig.DbName, -1)
 	err = writeTablesJSON(con, outputPath)
 	return err
 }
@@ -57,7 +57,7 @@ func (cmd Command) GenerateSourceFromJSON(table string) error {
 	if dbname == "" {
 		return errors.New("No database name selected in config")
 	}
-	path := config.OutputJSONPath + "/" + dbname
+	path := strings.Replace(config.OutputJSONPath, "{dbname}", dbname, -1)
 	info, err := os.Lstat(path)
 	if err != nil {
 		return err
@@ -87,10 +87,9 @@ func (cmd Command) GenerateSourceFromJSON(table string) error {
 		name := info.Name()
 		tableName := name[:len(name)-5]
 		if len(targetTables) > 0 && !stringsContains(targetTables, tableName) {
-			fmt.Println("file:", name, "[skip]")
 			return nil
 		}
-		if stringsContains(cmd.Config.IgnoreTableNames, tableName) {
+		if len(targetTables) == 0 && stringsContains(cmd.Config.IgnoreTableNames, tableName) {
 			fmt.Println("file:", name, "[ignore]")
 			return nil
 		}
