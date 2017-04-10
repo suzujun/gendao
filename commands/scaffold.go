@@ -79,6 +79,10 @@ func NewTemplate(inputPath string, tmplFiles []TemplateFile, outputPath string) 
 	for i, target := range tmplFiles {
 		ps := []string{inputPath, target.Name}
 		files[i] = strings.Join(ps, "/")
+		// check exists template file
+		if !IsFileExist(files[i]) {
+			return nil, errors.Errorf("not found template file, [%s]", files[i])
+		}
 		// check output dir
 		path := outputPath + "/" + target.ExportName
 		last := strings.LastIndex(path, "/")
