@@ -120,6 +120,10 @@ func (cmd Command) GenerateSourceFromJSON(table string) error {
 	// template by once
 	// --------------
 
+	if len(config.TemplateByOnce) == 0 {
+		return nil
+	}
+
 	myTemplate, tmpErr = NewTemplate(config.InputTemplatePath, config.TemplateByOnce, config.OutputSourcePath)
 	if tmpErr != nil {
 		return tmpErr
