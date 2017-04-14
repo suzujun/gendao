@@ -75,10 +75,9 @@ func newConfig() Config {
 		// {Name: "model.tpl", ExportName: "model/model.go"}, // dao/model.go
 		},
 		TemplateToTableLoop: []TemplateFile{
-			{Name: "dao_xxx.tpl", ExportName: "dao/{name}.go", Overwrite: false},          // dao/channel.go
-			{Name: "dao_xxx_gen.tpl", ExportName: "dao/{name}_gen.go", Overwrite: true},   // dao/channel_gen.go
-			{Name: "dao_xxx_mock.tpl", ExportName: "dao/{name}_mock.go", Overwrite: true}, // dao/channel_mock.go
-			{Name: "model_xxx.tpl", ExportName: "model/{name}.go", Overwrite: true},       // model/channel.go
+			{Name: "dao_xxx.tpl", ExportName: "dao/{name}.go", Overwrite: false},        // dao/channel.go
+			{Name: "dao_xxx_gen.tpl", ExportName: "dao/{name}_gen.go", Overwrite: true}, // dao/channel_gen.go
+			{Name: "model_xxx.tpl", ExportName: "model/{name}.go", Overwrite: true},     // model/channel.go
 			{Name: "part_method_name.tpl"},
 		},
 		CustomColumnType: map[string]*CustomColumnType{},
