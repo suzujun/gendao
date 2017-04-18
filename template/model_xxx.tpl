@@ -49,3 +49,18 @@ func {{ $privateDummyMethod }}(counter uint64, fillsPK bool) {{ $TableNamePascal
 	}
 	return m
 }
+
+// TableName is get table name
+func (m {{ $TableNamePascal }}) TableName() string {
+	return "{{ .Table.Name }}"
+}
+
+// PrimaryKeys is get primary keys for table
+func (m {{ $TableNamePascal }}) PrimaryKeys() []string {
+	return []string{ {{range $i, $c := .Table.PrimaryKey.Columns}}{{if ne $i 0}}, {{end}}"{{.Name}}"{{end}} }
+}
+
+// ColumnNames is get columns for table
+func (m {{ $TableNamePascal }}) ColumnNames() []string {
+	return []string{ {{range $i, $c := .Table.Columns}}{{if ne $i 0}}, {{end}}"{{$c.Name}}"{{end}} }
+}

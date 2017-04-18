@@ -8,6 +8,8 @@
 package dao
 
 import (
+	"strings"
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 	"gopkg.in/gorp.v1"
@@ -31,13 +33,14 @@ type (
 )
 
 func new{{$TableNamePascal}}(dbm, dbs *gorp.DbMap) *{{$TableNamePascal}}Dao {
-	tableName := "{{.Table.Name}}"
-	dbm.AddTableWithName(model.{{$TableNamePascal}}{}, tableName).SetKeys({{.Table.PrimaryKey.AutoIncrement}}{{range .Table.PrimaryKey.Columns}}, "{{.Name}}"{{end}})
-	dbs.AddTableWithName(model.{{$TableNamePascal}}{}, tableName).SetKeys({{.Table.PrimaryKey.AutoIncrement}}{{range .Table.PrimaryKey.Columns}}, "{{.Name}}"{{end}})
+	tableName := model.{{$TableNamePascal}}.TableName()
+	pks := model.{{$TableNamePascal}}.PrimaryKeys()
+	dbm.AddTableWithName(model.{{$TableNamePascal}}{}, tableName).SetKeys({{.Table.PrimaryKey.AutoIncrement}}, pks...)
+	dbs.AddTableWithName(model.{{$TableNamePascal}}{}, tableName).SetKeys({{.Table.PrimaryKey.AutoIncrement}}, pks...)
 	dao := {{$TableNamePascal}}Dao{}
 	dao.baseDao = newBaseDao(dbm, dbs)
 	dao.tableName = tableName
-	dao.columnsName = "{{range $i, $p := .Table.Columns}}{{if ne $i 0}},{{end}}{{.Name}}{{end}}"
+	dao.columnsName = strings.Join(model.{{$TableNamePascal}}.ColumnNames(), ",")
 	return &dao
 }
 
