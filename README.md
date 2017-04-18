@@ -2,6 +2,8 @@
 
 [![CircleCI](https://circleci.com/gh/suzujun/gendao/tree/master.svg?style=shield&circle-token=a6f399037d30cbc591f227f63163f77f8c5ac976)](https://circleci.com/gh/suzujun/gendao/tree/master)
 [![Build Status](https://travis-ci.org/suzujun/gendao.svg?branch=master)](https://travis-ci.org/suzujun/gendao)
+[![Coverage Status](https://coveralls.io/repos/github/suzujun/gendao/badge.svg)](https://coveralls.io/github/suzujun/gendao) [![Code Climate](https://codeclimate.com/github/suzujun/gendao/badges/gpa.svg)](https://codeclimate.com/github/suzujun/gendao) [![codecov](https://codecov.io/gh/suzujun/gendao/branch/master/graph/badge.svg)](https://codecov.io/gh/suzujun/gendao)
+
 
 Gendao is generate DAO and Model source code using templates.
 

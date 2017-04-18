@@ -1,0 +1,15 @@
+dependencies:
+  pre:
+    - echo "" > ~/.gitconfig
+
+test:
+  pre:
+    - go get github.com/mattn/goveralls
+    - npm install -g codeclimate-test-reporter
+  override:
+    - sh ./coverage.sh
+  post:
+    - export COVERAGE_FILE="`pwd`/coverage.txt"
+    - bash <(curl -s https://codecov.io/bash)
+    - /home/ubuntu/.go_workspace/bin/goveralls -coverprofile=$COVERAGE_FILE -service=circle-ci -repotoken=$COVERALLS_TOKEN
+    - CODECLIMATE_REPO_TOKEN=$CODECLIMATE_REPO_TOKEN codeclimate-test-reporter < coverage.txt

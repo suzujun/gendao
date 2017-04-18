@@ -5,6 +5,9 @@ src/
 *.json
 vendor/
 
+coverage.out
+coverage.txt
+
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
 *.a
