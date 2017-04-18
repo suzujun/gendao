@@ -2,3 +2,10 @@ language: go
 
 go:
   - 1.7.5
+
+branches:
+  only:
+  - master
+
+script:
+  - sh ./coverage.sh
