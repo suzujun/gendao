@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"regexp"
-	"strings"
 
 	"gopkg.in/urfave/cli.v1"
 
@@ -50,7 +50,7 @@ func main() {
 	app.Version = "0.1"
 
 	app.Commands = []cli.Command{
-		cli.Command{
+		{
 			Name:   "init",
 			Usage:  "Generate initialized config json",
 			Action: initAction,
@@ -59,20 +59,20 @@ func main() {
 				userFlag, passwordFlag, databaseFlag,
 			},
 		},
-		cli.Command{
+		{
 			Name:      "pull",
 			Usage:     "Generate tables JSON from database",
 			ArgsUsage: "{config file path}",
 			Action:    pullAction,
 			Flags:     []cli.Flag{dFlag, databaseFlag},
 		},
-		cli.Command{
+		{
 			Name:      "addtype",
 			Usage:     "Generate tables JSON from database",
 			ArgsUsage: "{config file path}",
 			Action:    addTypeAction,
 		},
-		cli.Command{
+		{
 			Name:      "gen",
 			Usage:     "Generate source code from JSON",
 			ArgsUsage: "{config file path}",
@@ -80,7 +80,9 @@ func main() {
 			Flags:     []cli.Flag{dFlag, tFlag, databaseFlag, tableFlag},
 		},
 	}
-	app.Run(os.Args)
+	if err := app.Run(os.Args); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func getFlag(c *cli.Context, names ...string) string {
@@ -100,7 +102,7 @@ func initAction(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(fmt.Sprintf("%s", b))
+	fmt.Printf("%s\n", b)
 	return nil
 }
 
@@ -117,6 +119,8 @@ func pullAction(c *cli.Context) error {
 	fmt.Println("ok.")
 	return nil
 }
+
+var keyReg = regexp.MustCompile(`^\\w+\\.{1}\\w+$`)
 
 func addTypeAction(c *cli.Context) error {
 	path := c.Args().First()
@@ -135,12 +139,10 @@ Press ^C at any time to quit.`)
 
 	for {
 		fmt.Print("key: (table.column) ")
-		fmt.Scanf("%s", &key)
-		matched, err := regexp.MatchString("^\\w+\\.{1}\\w+$", key)
-		if err != nil {
+		if _, err := fmt.Scan(&key); err != nil {
 			return err
 		}
-		if matched {
+		if keyReg.MatchString(key) {
 			break
 		}
 		fmt.Println(fmt.Sprintf("Invalid key: \"%s\"", key))
@@ -150,22 +152,32 @@ Press ^C at any time to quit.`)
 	if cmd.Config.CustomColumnType[key] != nil {
 		var answer string
 		fmt.Println("The selected key already exists.\nDo you want to overwrite? (yes) ")
-		fmt.Scanf("%s", &answer)
+		if _, err := fmt.Scan(&answer); err != nil {
+			return err
+		}
 		if answer != "yes" {
 			return nil
 		}
 	}
 
 	fmt.Print("type: ")
-	fmt.Scanf("%s", &typ)
+	if _, err := fmt.Scan(&typ); err != nil {
+		return err
+	}
 	fmt.Print("sample value: ")
-	fmt.Scanf("%s", &sampleValue)
+	if _, err := fmt.Scan(&sampleValue); err != nil {
+		return err
+	}
 
 	fmt.Print("package: (github.com/path/to) ")
-	fmt.Scanf("%s", &pkg)
+	if _, err := fmt.Scan(&pkg); err != nil {
+		return err
+	}
 	if pkg != "" {
 		fmt.Print("package alias: ")
-		fmt.Scanf("%s", &pkgAlias)
+		if _, err := fmt.Scan(&pkgAlias); err != nil {
+			return err
+		}
 	}
 
 	data := commands.CustomColumnType{
@@ -174,17 +186,19 @@ Press ^C at any time to quit.`)
 		Package:      pkg,
 		PackageAlias: pkgAlias,
 	}
-	preview := map[string]interface{}{key: data}
+	preview := map[string]commands.CustomColumnType{key: data}
 	b, err := json.MarshalIndent(preview, "", "  ")
 	if err != nil {
 		return err
 	}
-	fmt.Println(fmt.Sprintf("About to write to \"%s\"", path))
+	fmt.Printf("About to write to \"%s\"\n", path)
 	fmt.Println(string(b))
 
 	var answer string
 	fmt.Println("Is this ok? (yes) ")
-	fmt.Scanf("%s", &answer)
+	if _, err := fmt.Scan(&answer); err != nil {
+		return err
+	}
 	if answer != "yes" {
 		return nil
 	}
@@ -211,20 +225,17 @@ func genAction(c *cli.Context) error {
 		return err
 	}
 	fmt.Println("run \"go fmt " + cmd.Config.OutputSourcePath + "/...\"")
-	exec.Command("go", "fmt", cmd.Config.OutputSourcePath+"/...").Run()
+	if err := exec.Command("go", "fmt", cmd.Config.OutputSourcePath+"/...").Run(); err != nil {
+		return err
+	}
 	fmt.Println("ok.")
 	return nil
-}
-
-func getGoPath() string {
-	paths := strings.Split(os.Getenv("GOPATH"), ":")
-	return paths[len(paths)-1]
 }
 
 func getConfig(path, dbName string) (*commands.Command, error) {
 	if path == "" {
 		fmt.Println("Please set the config.json created with the \"init\" command")
-		return nil, errors.New("")
+		return nil, errors.New("config path is empty")
 	}
 	cmd, err := commands.NewCommandFromJSON(path, dbName)
 	if err != nil {

@@ -3,6 +3,7 @@ package commands
 import (
 	"bytes"
 	"fmt"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"text/template"
@@ -36,7 +37,7 @@ type (
 		ColumnsName      string
 		Columns          []TemplateDataColumn
 		PrimaryKey       TemplateDataIndex
-		Indexes           []TemplateDataIndex
+		Indexes          []TemplateDataIndex
 		UsePackages      [][]string
 		CustomMethods    []CustomMethod
 	}
@@ -63,8 +64,6 @@ type (
 	}
 )
 
-const randomBaseCharcter = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
 func NewTemplate(inputPath string, tmplFiles []TemplateFile, outputPath string) (*MyTemplate, error) {
 	funcMap := template.FuncMap{
 		"title": strings.Title,
@@ -75,19 +74,18 @@ func NewTemplate(inputPath string, tmplFiles []TemplateFile, outputPath string) 
 	}
 	// load template
 	files := make([]string, len(tmplFiles))
-	configs := []TemplateExportConfig{}
+	configs := make([]TemplateExportConfig, 0, len(tmplFiles))
 	for i, target := range tmplFiles {
-		ps := []string{inputPath, target.Name}
-		files[i] = strings.Join(ps, "/")
+		files[i] = filepath.Join(inputPath, target.Name)
 		// check exists template file
 		if !IsFileExist(files[i]) {
 			return nil, errors.Errorf("not found template file, [%s]", files[i])
 		}
 		// check output dir
-		path := outputPath + "/" + target.ExportName
-		last := strings.LastIndex(path, "/")
-		if err := createDirIfNotExist(path[:last]); err != nil {
-			return nil, errors.Errorf("%s, path=[%s]", err, path[:last])
+		path := filepath.Join(outputPath, target.ExportName)
+		dirPath := filepath.Dir(path)
+		if err := createDirIfNotExist(dirPath); err != nil {
+			return nil, errors.Errorf("%s, path=[%s]", err, dirPath)
 		}
 		if target.ExportName == "" {
 			continue
@@ -134,6 +132,8 @@ func (my MyTemplate) outputSourceFileTable(data TemplateData) error {
 	return nil
 }
 
+var stdlibReg = regexp.MustCompile("^[a-z0-9/]+$")
+
 func newTamplateParamTable(packageRoot string, table MysqlTable, commonColumns []string, customTypeMap map[string]*CustomColumnType) TemplateDataTable {
 	pTable := TemplateDataTable{}
 	if len(table.Columns) == 0 {
@@ -142,11 +142,11 @@ func newTamplateParamTable(packageRoot string, table MysqlTable, commonColumns [
 	pTable.Name = table.Columns[0].TableName
 	pTable.NameByCamelcase = NewWordConverter(table.Columns[0].TableName).Camelcase().Singularize().ToString()
 	pTable.NameByPascalcase = NewWordConverter(table.Columns[0].TableName).Pascalcase().Singularize().ToString()
-	pTable.Columns = []TemplateDataColumn{}
+	pTable.Columns = make([]TemplateDataColumn, 0, len(table.Columns))
 
 	// get column info
-	names := []string{}
-	packageMap := map[string]string{}
+	names := make([]string, 0, len(table.Columns))
+	packageMap := make(map[string]string, len(table.Columns))
 	for _, column := range table.Columns {
 		name := fmt.Sprintf("%s.%s", pTable.Name, column.ColumnName)
 		customType := customTypeMap[name]
@@ -162,8 +162,9 @@ func newTamplateParamTable(packageRoot string, table MysqlTable, commonColumns [
 		}
 	}
 	// get index info
-	methods := []CustomMethod{}
 	indexes := newTemplateParamIndex(table.Indexes, pTable.Columns)
+	methods := make([]CustomMethod, 0, len(indexes))
+	pTable.Indexes = make([]TemplateDataIndex, 0, len(indexes))
 	for _, index := range indexes {
 		if index.Primary {
 			pTable.PrimaryKey = index
@@ -173,7 +174,7 @@ func newTamplateParamTable(packageRoot string, table MysqlTable, commonColumns [
 		methods = append(methods, GenCustomMethods(index, pTable.NameByPascalcase)...)
 	}
 	// deduplication
-	methodMap := map[string]bool{}
+	methodMap := make(map[string]bool, len(methods))
 	pTable.CustomMethods = make([]CustomMethod, 0, len(methods))
 	for _, m := range methods {
 		if methodMap[m.Name] {
@@ -187,7 +188,7 @@ func newTamplateParamTable(packageRoot string, table MysqlTable, commonColumns [
 		pTable.UsePackages = make([][]string, 3)
 		for pkg, alias := range packageMap {
 			v := fmt.Sprintf("%s \"%s\"", alias, pkg)
-			if m, _ := regexp.MatchString("^[a-z0-9/]+$", pkg); m { // standard library
+			if stdlibReg.MatchString(pkg) { // standard library
 				pTable.UsePackages[0] = append(pTable.UsePackages[0], v)
 			} else if m, _ := regexp.MatchString("^"+packageRoot, pkg); m { // my package
 				pTable.UsePackages[2] = append(pTable.UsePackages[2], v)
@@ -226,7 +227,7 @@ func newTemplateParamIndex(indexes []MysqlIndex, pColumns []TemplateDataColumn) 
 	if len(indexes) == 0 || len(pColumns) == 0 {
 		return pIndexes
 	}
-	columnMap := map[string]*TemplateDataColumn{}
+	columnMap := make(map[string]*TemplateDataColumn, len(pColumns))
 	for i, pColumn := range pColumns {
 		columnMap[pColumn.Name] = &pColumns[i]
 	}
@@ -346,14 +347,14 @@ func (tdc *TemplateDataColumn) setSampleValue() {
 	tdc.SampleValue = (func(c *TemplateDataColumn) string {
 		if c.Type == "string" || c.Type == "null.String" {
 			max := int(*c.MysqlColumn.CharacterMaximumLength)
-			min := int(max / 3)
+			min := max / 3
 			if c.Type == "null.String" {
 				return fmt.Sprintf("randNullStringRange(%d, %d)", min, max)
 			}
 			return fmt.Sprintf("randStringRange(%d, %d)", min, max)
 		} else if c.Type == "time.Time" {
 			return "time.Unix(time.Now().Unix(), 0)"
-		} else if strings.Index(c.Type, "null.") == 0 {
+		} else if strings.HasPrefix(c.Type, "null.") {
 			switch c.Type {
 			case "null.Int":
 				r := c.MysqlColumn.DataTypeRange()
@@ -363,7 +364,7 @@ func (tdc *TemplateDataColumn) setSampleValue() {
 			case "null.Time":
 				return "randNullTime()"
 			}
-		} else if strings.Index(c.Type, "int") >= 0 {
+		} else if strings.Contains(c.Type, "int") {
 			switch c.Type {
 			case "int":
 				return "rand.Int()"
@@ -389,7 +390,7 @@ func (tdc *TemplateDataColumn) setSampleValue() {
 			default:
 				return "1"
 			}
-		} else if strings.Index(c.Type, "float") == 0 {
+		} else if strings.HasPrefix(c.Type, "float") {
 			switch c.Type {
 			case "float32":
 				return "rand.Float32()" // TODO mysql variable type に応じた値を設定する

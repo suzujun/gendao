@@ -16,21 +16,21 @@ func TestScaffoldIndexMethod_GenCustomMethods(t *testing.T) {
 		}
 	}
 	indexes := []TemplateDataIndex{
-		TemplateDataIndex{
+		{
 			Columns: []TemplateDataColumn{
 				genTemplateDataColumn("id", "string"),
 			},
 			Unique:  true,
 			Primary: true,
 		},
-		TemplateDataIndex{
+		{
 			Columns: []TemplateDataColumn{
 				genTemplateDataColumn("channel_id", "int"),
 			},
 			Unique:  false,
 			Primary: false,
 		},
-		TemplateDataIndex{
+		{
 			Columns: []TemplateDataColumn{
 				genTemplateDataColumn("stream_name", "string"),
 				genTemplateDataColumn("edition", "string"),

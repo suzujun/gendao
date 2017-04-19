@@ -16,6 +16,7 @@ func TestUtil_WordConverter(t *testing.T) {
 		"id":              "id",
 		"channel_id":      "channel_id",
 		"test_channel_id": "test_channel_id",
+		"test_json_id":    "test_json_id",
 	}
 	for test, answer := range tests {
 		title := fmt.Sprintf("plane[%s]", test)
@@ -32,6 +33,7 @@ func TestUtil_WordConverter(t *testing.T) {
 		"id":              "ID",
 		"channel_id":      "channel_ID",
 		"test_channel_id": "test_channel_ID",
+		"test_json_id":    "test_JSON_ID",
 	}
 	for test, answer := range tests {
 		title := fmt.Sprintf("plane_lint[%s]", test)
@@ -48,6 +50,7 @@ func TestUtil_WordConverter(t *testing.T) {
 		"id":              "id",
 		"channel_id":      "channelId",
 		"test_channel_id": "testChannelId",
+		"test_json_id":    "testJsonId",
 	}
 	for test, answer := range tests {
 		title := fmt.Sprintf("camelcase[%s]", test)
@@ -64,6 +67,7 @@ func TestUtil_WordConverter(t *testing.T) {
 		"id":              "ids",
 		"channel_id":      "channelIds",
 		"test_channel_id": "testChannelIds",
+		"test_json_id":    "testJsonIds",
 	}
 	for test, answer := range tests {
 		title := fmt.Sprintf("camelcase_pluralize[%s]", test)
@@ -80,6 +84,7 @@ func TestUtil_WordConverter(t *testing.T) {
 		"id":              "ids",
 		"channel_id":      "channelIDs",
 		"test_channel_id": "testChannelIDs",
+		"test_json_id":    "testJSONIDs",
 	}
 	for test, answer := range tests {
 		title := fmt.Sprintf("camelcase_pluralize_lint[%s]", test)
@@ -96,6 +101,7 @@ func TestUtil_WordConverter(t *testing.T) {
 		"id":              "Id",
 		"channel_id":      "ChannelId",
 		"test_channel_id": "TestChannelId",
+		"test_json_id":    "TestJsonId",
 	}
 	for test, answer := range tests {
 		title := fmt.Sprintf("pascalcase[%s]", test)
@@ -112,6 +118,7 @@ func TestUtil_WordConverter(t *testing.T) {
 		"id":              "Ids",
 		"channel_id":      "ChannelIds",
 		"test_channel_id": "TestChannelIds",
+		"test_json_id":    "TestJsonIds",
 	}
 	for test, answer := range tests {
 		title := fmt.Sprintf("pascalcase_pluralize[%s]", test)
@@ -130,6 +137,8 @@ func TestUtil_WordConverter(t *testing.T) {
 		"channel_ids":      "ChannelIDs",
 		"test_channel_id":  "TestChannelID",
 		"test_channel_ids": "TestChannelIDs",
+		"test_json_id":     "TestJSONID",
+		"test_json_ids":    "TestJSONIDs",
 	}
 	for test, answer := range tests {
 		title := fmt.Sprintf("pascalcase_lint[%s]", test)
@@ -146,6 +155,7 @@ func TestUtil_WordConverter(t *testing.T) {
 		"id":              "IDs",
 		"channel_id":      "ChannelIDs",
 		"test_channel_id": "TestChannelIDs",
+		"test_json_id":    "TestJSONIDs",
 	}
 	for test, answer := range tests {
 		title := fmt.Sprintf("pascalcase_pluralize_lint[%s]", test)
@@ -162,6 +172,7 @@ func TestUtil_WordConverter(t *testing.T) {
 		"ids":              "Id",
 		"channel_ids":      "ChannelId",
 		"test_channel_ids": "TestChannelId",
+		"test_json_ids":    "TestJsonId",
 	}
 	for test, answer := range tests {
 		title := fmt.Sprintf("pascalcase_singularize[%s]", test)
@@ -178,6 +189,7 @@ func TestUtil_WordConverter(t *testing.T) {
 		"ids":              "ID",
 		"channel_ids":      "ChannelID",
 		"test_channel_ids": "TestChannelID",
+		"test_json_ids":    "TestJSONID",
 	}
 	for test, answer := range tests {
 		title := fmt.Sprintf("pascalcase_singularize_lint[%s]", test)

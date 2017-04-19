@@ -118,7 +118,7 @@ func (con *MysqlConnection) GetTableNames() ([]string, error) {
 	}
 	rows, err := con.db.Query("SHOW TABLES")
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 
 	tnames := []string{}
@@ -179,7 +179,7 @@ and TABLE_NAME = '%s'
 order by TABLE_NAME, ORDINAL_POSITION
 `, con.dbname, tname))
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 
 	var tableCatalog, tableSchema, tableName, columnName, isNullable, dataType,
@@ -201,7 +201,7 @@ order by TABLE_NAME, ORDINAL_POSITION
 			&columnKey, &extra, &privileges, &columnComment,
 		)
 		if err != nil {
-			panic(err.Error())
+			panic(err)
 		}
 		result = append(result, MysqlColumn{
 			TableCatalog:           tableCatalog,
@@ -249,7 +249,7 @@ and TABLE_NAME = "%s"
 order by SORT_NUMBER, INDEX_NAME, SEQ_IN_INDEX
 `, con.dbname, tname))
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 
 	var tableCatalog, tableSchema, tableName, indexSchema, indexName, columnName, collation, nullable,
@@ -265,7 +265,7 @@ order by SORT_NUMBER, INDEX_NAME, SEQ_IN_INDEX
 			&indexComment, &sortNumber,
 		)
 		if err != nil {
-			panic(err.Error())
+			panic(err)
 		}
 		result = append(result, MysqlIndex{
 			TableCatalog: tableCatalog,
@@ -290,11 +290,11 @@ order by SORT_NUMBER, INDEX_NAME, SEQ_IN_INDEX
 }
 
 func (mc MysqlColumn) Unsigned() bool {
-	return strings.Index(mc.ColumnType, "unsigned") >= 0
+	return strings.Contains(mc.ColumnType, "unsigned")
 }
 
 func (mc MysqlColumn) AutoIncrement() bool {
-	return strings.Index(mc.Extra, "auto_increment") >= 0
+	return strings.Contains(mc.Extra, "auto_increment")
 }
 
 func (mc MysqlColumn) Primary() bool {
