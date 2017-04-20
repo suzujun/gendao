@@ -42,8 +42,7 @@ func (cmd Command) GenerateJSON() error {
 	}
 	defer con.Close()
 	outputPath := strings.Replace(cmd.Config.OutputJSONPath, "{dbname}", cmd.Config.MysqlConfig.DbName, -1)
-	err = writeTablesJSON(con, outputPath)
-	return err
+	return writeTablesJSON(con, outputPath)
 }
 
 func (cmd Command) GenerateSourceFromJSON(table string) error {
@@ -100,7 +99,7 @@ func (cmd Command) GenerateSourceFromJSON(table string) error {
 	if len(targetTables) > 0 {
 		// Only specified file
 		for _, table := range targetTables {
-			path := fmt.Sprintf("%s/%s.json", path, table)
+			path := filepath.Join(path, fmt.Sprintf("%s.json", table))
 			if err := outputSource(path); err != nil {
 				return err
 			}
@@ -112,7 +111,7 @@ func (cmd Command) GenerateSourceFromJSON(table string) error {
 				return err
 			}
 			name := info.Name()
-			tableName := name[:len(name)-5] // remove ".json"
+			tableName := strings.TrimSuffix(name, ".json")
 			if len(targetTables) == 0 && stringsContains(cmd.Config.IgnoreTableNames, tableName) {
 				fmt.Println("file:", name, "[ignore]")
 				return nil
@@ -140,7 +139,7 @@ func (cmd Command) GenerateSourceFromJSON(table string) error {
 		Config: cmd.Config,
 	}
 
-	// set common common column
+	// set common column
 	ccLen := len(cmd.Config.CommonColumns)
 	if ccLen > 0 {
 		for _, table := range pTables {

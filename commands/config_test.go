@@ -1,9 +1,9 @@
 package commands
 
 import (
-	"testing"
-	"io/ioutil"
 	"encoding/json"
+	"io/ioutil"
+	"testing"
 
 	"github.com/stretchr/testify/assert"
 )

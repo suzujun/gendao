@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"regexp"
+	"path/filepath"
 )
 
 type (
@@ -108,6 +108,11 @@ func getPackageRoot() string {
 		return ""
 	}
 	gopath := os.Getenv("GOPATH")
-	re := regexp.MustCompile(fmt.Sprintf("^%s/src/", gopath))
-	return re.ReplaceAllString(pwd, "")
+	srcPath := filepath.Join(gopath, "src")
+	rel, err := filepath.Rel(srcPath, pwd)
+	if err != nil {
+		fmt.Println("error: ", err.Error())
+		return ""
+	}
+	return filepath.ToSlash(rel)
 }

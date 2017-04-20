@@ -70,8 +70,13 @@ func (wc *WordConverter) ToString() string {
 		sep = ""
 	}
 	// lint
-	if wc.lint && (!wc.camelcase || wc.camelcase && len(items) > 1) {
-		items[lastIndex] = getLint(items[lastIndex])
+	if wc.lint {
+		for i := range items {
+			if wc.camelcase && i == 0 {
+				continue
+			}
+			items[i] = getLint(items[i])
+		}
 	}
 	// pluralize
 	if wc.pluralize {
@@ -87,7 +92,7 @@ func getLint(word string) string {
 	upper := strings.ToUpper(word)
 	if lintMap[upper] {
 		return upper
-	} else if lintMap[upper[:len(word)-1]] && upper[len(word)-1:len(word)] == "S" {
+	} else if lintMap[upper[:len(word)-1]] && upper[len(word)-1] == 'S' {
 		return upper[:len(word)-1] + "s"
 	}
 	return word

@@ -5,13 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"reflect"
 )
 
 const (
-	dirPerm  = 0755
-	filePerm = 0644
-	buffSize = 1024
+	dirPerm = 0755
 )
 
 func readFile(path string) ([]byte, error) {
@@ -24,24 +21,17 @@ func readFile(path string) ([]byte, error) {
 }
 
 func readFileJSON(path string, v interface{}) error {
-	buff, err := readFile(path)
+	file, err := os.Open(path)
 	if err != nil {
 		return err
 	}
-	return json.Unmarshal(buff, v)
+	defer file.Close()
+	return json.NewDecoder(file).Decode(v)
 }
 
 // createDirIfNotExist creates the directory to path if it doesn't exist.
 func createDirIfNotExist(path string) error {
-	info, err := os.Stat(path)
-	if err != nil {
-		return err
-	}
-	if info.IsDir() {
-		return nil
-	}
-	os.MkdirAll(path, dirPerm)
-	return nil
+	return os.MkdirAll(path, dirPerm)
 }
 
 // createFile creates the file if it doesn't exist.
@@ -57,8 +47,7 @@ func createFile(path string, output interface{}) (int, error) {
 	case string:
 		return file.WriteString(data)
 	default:
-		v := reflect.ValueOf(output)
-		return 0, fmt.Errorf("Unsupported format type=%s", v.Type())
+		return 0, fmt.Errorf("Unsupported format type=%T", data)
 	}
 }
 
@@ -71,8 +60,6 @@ func createFileIfNotExist(path string, output interface{}) (int, error) {
 }
 
 func IsFileExist(path string) bool {
-	if _, err := os.Stat(path); err != nil {
-		return false
-	}
-	return true
+	_, err := os.Stat(path)
+	return !os.IsNotExist(err)
 }

@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"path/filepath"
 )
 
 func writeTablesJSON(con *MysqlConnection, outputPath string) error {
@@ -17,7 +18,7 @@ func writeTablesJSON(con *MysqlConnection, outputPath string) error {
 		if err != nil {
 			return err
 		}
-		path := outputPath + "/" + tname + ".json"
+		path := filepath.Join(outputPath, tname+".json")
 		if err := mt.WriteJSON(path); err != nil {
 			return err
 		}
