@@ -25,9 +25,3 @@ func New{{ $TableNamePascal }}(dbm, dbs *gorp.DbMap) {{ $TableNamePascal }} {
 // -------------------
 
 // Add here ...
-
-// -------------------
-// manual mock method
-// -------------------
-
-// Add here ...

@@ -124,4 +124,3 @@ func (dao {{$TableNamePascal}}Dao) delete({{$TableNameCamel}} *model.{{$TableNam
 //----------------------------------------
 
 var _ {{$TableNamePascal}} = &{{$TableNamePascal}}Dao{}
-var _ {{$TableNamePascal}} = &Mock{{$TableNamePascal}}Dao{}
