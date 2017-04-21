@@ -14,8 +14,8 @@ import (
 	"github.com/pkg/errors"
 	"gopkg.in/gorp.v1"
 
-	"{{ .Config.PackageRoot }}/model"
 	"{{ .Config.PackageRoot }}/dao/ranger"
+	"{{ .Config.PackageRoot }}/model"
 )
 {{$TableNamePascal := .Table.NameByPascalcase}}
 {{$TableNameCamel := .Table.NameByCamelcase}}
@@ -33,14 +33,15 @@ type (
 )
 
 func new{{$TableNamePascal}}(dbm, dbs *gorp.DbMap) *{{$TableNamePascal}}Dao {
-	tableName := model.{{$TableNamePascal}}.TableName()
-	pks := model.{{$TableNamePascal}}.PrimaryKeys()
+  m := model.{{$TableNamePascal}}{}
+	tableName := m.TableName()
+	pks := m.PrimaryKeys()
 	dbm.AddTableWithName(model.{{$TableNamePascal}}{}, tableName).SetKeys({{.Table.PrimaryKey.AutoIncrement}}, pks...)
 	dbs.AddTableWithName(model.{{$TableNamePascal}}{}, tableName).SetKeys({{.Table.PrimaryKey.AutoIncrement}}, pks...)
 	dao := {{$TableNamePascal}}Dao{}
 	dao.baseDao = newBaseDao(dbm, dbs)
 	dao.tableName = tableName
-	dao.columnsName = strings.Join(model.{{$TableNamePascal}}.ColumnNames(), ",")
+	dao.columnsName = strings.Join(m.ColumnNames(), ",")
 	return &dao
 }
 

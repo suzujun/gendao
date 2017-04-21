@@ -177,6 +177,8 @@ func getRangeFncType(typ string) string {
 		return "ranger.RangeIntFnc"
 	case "time.Time":
 		return "ranger.RangeTimeFnc"
+	case "null.Time":
+		return "ranger.RangeTimeFnc"
 	case "interface{}":
 		return "" // none range
 	case "bool":
