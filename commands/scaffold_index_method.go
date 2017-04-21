@@ -152,36 +152,20 @@ func (cmps CustomMethodParams) joinName(sep string) string {
 }
 
 func getRangeFncType(typ string) string {
-	switch typ {
-	case "string":
+	typ = strings.ToLower(typ)
+	if typ == "interface{}" {
+		return "" // none range
+	} else if typ == "bool" {
+		return "" // none range
+	} else if strings.Contains(typ, "string") {
 		return "ranger.RangeStrFnc"
-	case "int":
+	} else if strings.Contains(typ, "int") {
 		return "ranger.RangeIntFnc"
-	case "int8":
-		return "ranger.RangeIntFnc"
-	case "int16":
-		return "ranger.RangeIntFnc"
-	case "int32":
-		return "ranger.RangeIntFnc"
-	case "int64":
-		return "ranger.RangeIntFnc"
-	case "uint":
-		return "ranger.RangeIntFnc"
-	case "uint8":
-		return "ranger.RangeIntFnc"
-	case "uint16":
-		return "ranger.RangeIntFnc"
-	case "uint32":
-		return "ranger.RangeIntFnc"
-	case "uint64":
-		return "ranger.RangeIntFnc"
-	case "time.Time":
+	} else if strings.Contains(typ, "float") {
+		return "ranger.RangeFloatFnc"
+	} else if strings.Contains(typ, "time") {
 		return "ranger.RangeTimeFnc"
-	case "interface{}":
-		return "" // none range
-	case "bool":
-		return "" // none range
-	default:
+	} else {
 		panic(fmt.Sprintf("unknown range func type [%s]", typ))
 	}
 }
