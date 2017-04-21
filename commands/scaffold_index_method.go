@@ -166,19 +166,19 @@ func getRangeFncType(typ string) string {
 	case "int64":
 		return "ranger.RangeIntFnc"
 	case "uint":
-		return "ranger.RangeUintFnc"
+		return "ranger.RangeIntFnc"
 	case "uint8":
-		return "ranger.RangeUintFnc"
+		return "ranger.RangeIntFnc"
 	case "uint16":
-		return "ranger.RangeUintFnc"
+		return "ranger.RangeIntFnc"
 	case "uint32":
-		return "ranger.RangeUintFnc"
+		return "ranger.RangeIntFnc"
 	case "uint64":
-		return "ranger.RangeUintFnc"
+		return "ranger.RangeIntFnc"
 	case "time.Time":
 		return "ranger.RangeTimeFnc"
 	case "interface{}":
-		return "ranger.RangeFnc"
+		return "" // none range
 	case "bool":
 		return "" // none range
 	default:
