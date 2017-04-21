@@ -5,7 +5,12 @@ import (
 	"time"
 
 	"gopkg.in/gorp.v1"
+	null "gopkg.in/guregu/null.v3"
 )
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
 
 // Model ...
 type Model struct { {{range .CommonColumns}}
@@ -46,7 +51,6 @@ func NewDummyModel() Model {
 }
 
 func randIntn(max int) int {
-	rand.Seed(time.Now().UnixNano())
 	return rand.Intn(max)
 }
 
@@ -56,7 +60,6 @@ func randString(length int) string {
 	}
 	b := make([]byte, int(length))
 	for i := range b {
-		rand.Seed(time.Now().UnixNano())
 		b[i] = baseString[int(rand.Int63()%int64(len(baseString)))]
 	}
 	return string(b)
@@ -66,10 +69,21 @@ func randStringRange(min, max int) string {
 	if min >= max {
 		return ""
 	}
-	rand.Seed(time.Now().UnixNano())
 	length := int(rand.Int63() % int64(max - min))
 	if length > 10000 {
 		length = 10000 // limiter
 	}
 	return randString(length)
+}
+
+func randTime() time.Time {
+	return time.Unix(rand.Int63n(int64(3000*365*24*60*60)), rand.Int63n(int64(time.Second)))
+}
+
+func randNullTime() null.Time {
+  valid := rand.Intn(2) == 0
+  if !valid {
+    return null.Time{}
+  }
+  return null.TimeFrom(randTime())
 }
