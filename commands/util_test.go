@@ -18,4 +18,16 @@ func TestUtil_stringsContains(t *testing.T) {
 
 	// []strings: unmatch
 	assert.False(stringsContains(strs, ""))
+
+	// string: match
+	assert.True(stringsContains("hogefuga", "fu"))
+
+	// string: match to empty
+	assert.True(stringsContains("hogefuga", ""))
+
+	// string: unmatch
+	assert.False(stringsContains("hogefuga", "piyo"))
+
+	// int: unmatch
+	assert.False(stringsContains(12345, "234"))
 }

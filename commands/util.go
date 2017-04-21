@@ -2,6 +2,7 @@ package commands
 
 import (
 	"database/sql"
+	"strings"
 )
 
 func parseIntPointer(val *sql.NullInt64) *uint {
@@ -19,11 +20,18 @@ func parseStringPointer(val *sql.NullString) *string {
 	return nil
 }
 
-func stringsContains(s []string, substr string) bool {
-	for _, a := range s {
-		if a == substr {
-			return true
+func stringsContains(s interface{}, substr string) bool {
+	switch d := s.(type) {
+	case string:
+		return strings.Contains(d, substr)
+	case []string:
+		for _, a := range d {
+			if a == substr {
+				return true
+			}
 		}
+		return false
+	default:
+		return false
 	}
-	return false
 }
