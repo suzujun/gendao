@@ -39,6 +39,7 @@ type (
 		PrimaryKey       TemplateDataIndex
 		Indexes          []TemplateDataIndex
 		UsePackages      [][]string
+		UseTypes         []string
 		CustomMethods    []CustomMethod
 	}
 	// TemplateDataColumn ...
@@ -147,12 +148,14 @@ func newTamplateParamTable(packageRoot string, table MysqlTable, commonColumns [
 	// get column info
 	names := make([]string, 0, len(table.Columns))
 	packageMap := make(map[string]string, len(table.Columns))
+	typeMap := map[string]bool{}
 	for _, column := range table.Columns {
 		name := fmt.Sprintf("%s.%s", pTable.Name, column.ColumnName)
 		customType := customTypeMap[name]
 		tpColumn := newTemplateParamColumn(column, commonColumns, customType)
 		pTable.Columns = append(pTable.Columns, tpColumn)
 		names = append(names, column.ColumnName)
+		typeMap[tpColumn.Type] = true
 		// set use package
 		if customType != nil && customType.Package != "" {
 			packageMap[customType.Package] = customType.PackageAlias
@@ -182,6 +185,13 @@ func newTamplateParamTable(packageRoot string, table MysqlTable, commonColumns [
 		}
 		methodMap[m.Name] = true
 		pTable.CustomMethods = append(pTable.CustomMethods, m)
+	}
+	// using types
+	var idx = 0
+	pTable.UseTypes = make([]string, len(typeMap))
+	for key := range typeMap {
+		pTable.UseTypes[idx] = key
+		idx++
 	}
 	// using packages
 	if len(packageMap) > 0 {
