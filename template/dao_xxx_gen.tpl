@@ -12,11 +12,11 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
-	"gopkg.in/gorp.v1"{{range .Table.UsePackages}}{{range .}}{{if eq . " \"gopkg.in/guregu/null.v3\""}}
-	{{ . }}{{end}}{{end}}{{end}}
+	"gopkg.in/gorp.v1"{{range .Table.UseTypes}}{{if eq . "null.Time"}}
+	"gopkg.in/guregu/null.v3"{{end}}{{end}}
 
-	"{{ .Config.PackageRoot }}/model"
 	"{{ .Config.PackageRoot }}/dao/ranger"
+	"{{ .Config.PackageRoot }}/model"
 )
 {{$TableNamePascal := .Table.NameByPascalcase}}
 {{$TableNameCamel := .Table.NameByCamelcase}}
@@ -34,14 +34,15 @@ type (
 )
 
 func new{{$TableNamePascal}}(dbm, dbs *gorp.DbMap) *{{$TableNamePascal}}Dao {
-	tableName := model.{{$TableNamePascal}}.TableName()
-	pks := model.{{$TableNamePascal}}.PrimaryKeys()
-	dbm.AddTableWithName(model.{{$TableNamePascal}}{}, tableName).SetKeys({{.Table.PrimaryKey.AutoIncrement}}, pks...)
-	dbs.AddTableWithName(model.{{$TableNamePascal}}{}, tableName).SetKeys({{.Table.PrimaryKey.AutoIncrement}}, pks...)
+	m := model.{{$TableNamePascal}}{}
+	tableName := m.TableName()
+	pks := m.PrimaryKeys()
+	dbm.AddTableWithName(m, tableName).SetKeys({{.Table.PrimaryKey.AutoIncrement}}, pks...)
+	dbs.AddTableWithName(m, tableName).SetKeys({{.Table.PrimaryKey.AutoIncrement}}, pks...)
 	dao := {{$TableNamePascal}}Dao{}
 	dao.baseDao = newBaseDao(dbm, dbs)
 	dao.tableName = tableName
-	dao.columnsName = strings.Join(model.{{$TableNamePascal}}.ColumnNames(), ",")
+	dao.columnsName = strings.Join(m.ColumnNames(), ",")
 	return &dao
 }
 
@@ -55,8 +56,10 @@ func (dao {{ $TableNamePascal }}Dao) {{template "part_method_name.tpl" .}} {
 	builder := dao.newSelectBuilder(){{range .Params}}{{if .Where}}.
 		Where(sq.Eq{"{{.Name}}": {{.NameByCamelcase}}}){{end}}{{end}}{{if .Orders}}.{{$desc := .Desc}}
 		OrderBy({{range $i, $p := .Orders}}{{if ne $i 0}}, {{end}}"{{.Name}}{{if $desc}} desc{{end}}"{{end}}){{end}}{{range .Params}}{{if eq .Name "limit"}}.
-		Limit(limit){{end}}{{end}}{{if .RangeParam}}
-	builder = ranger.SetWhere(builder, "{{.RangeParam.Name}}", rangeFncs){{end}}{{if .ReturnMany}}
+		Limit(limit){{end}}{{end}}{{if .RangeParam}}{{if contains .RangeParam.Type "int"}}
+	builder = ranger.SetWhereInt(builder, "{{.RangeParam.Name}}", rangeFncs){{else if contains .RangeParam.Type "string"}}
+	builder = ranger.SetWhereStr(builder, "{{.RangeParam.Name}}", rangeFncs){{else if contains .RangeParam.Type "time"}}
+	builder = ranger.SetWhereTime(builder, "{{.RangeParam.Name}}", rangeFncs){{end}}{{end}}{{if .ReturnMany}}
 	return dao.findManyByBuilder(&builder){{else}}
 	return dao.findOneByBuilder(&builder){{end}}
 }
