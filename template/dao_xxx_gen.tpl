@@ -12,7 +12,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
-	"gopkg.in/gorp.v1"{{range .Table.UseTypes}}{{if eq . "null.Time"}}
+	"gopkg.in/gorp.v1"{{range .Table.CustomMethodUseTypes}}{{if eq . "null.Time"}}
 	"gopkg.in/guregu/null.v3"{{end}}{{end}}
 
 	"{{ .Config.PackageRoot }}/dao/ranger"
