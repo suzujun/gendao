@@ -31,16 +31,17 @@ type (
 	}
 	// TemplateDataTable ...
 	TemplateDataTable struct {
-		Name             string
-		NameByCamelcase  string
-		NameByPascalcase string
-		ColumnsName      string
-		Columns          []TemplateDataColumn
-		PrimaryKey       TemplateDataIndex
-		Indexes          []TemplateDataIndex
-		UsePackages      [][]string
-		UseTypes         []string
-		CustomMethods    []CustomMethod
+		Name                 string
+		NameByCamelcase      string
+		NameByPascalcase     string
+		ColumnsName          string
+		Columns              []TemplateDataColumn
+		PrimaryKey           TemplateDataIndex
+		Indexes              []TemplateDataIndex
+		UsePackages          [][]string
+		UseTypes             []string
+		CustomMethods        []CustomMethod
+		CustomMethodUseTypes []string
 	}
 	// TemplateDataColumn ...
 	TemplateDataColumn struct {
@@ -177,7 +178,7 @@ func newTamplateParamTable(packageRoot string, table MysqlTable, commonColumns [
 		methods = append(methods, GenCustomMethods(index, pTable.NameByPascalcase)...)
 	}
 	// deduplication
-	methodMap := make(map[string]bool, len(methods))
+	methodMap := map[string]bool{}
 	pTable.CustomMethods = make([]CustomMethod, 0, len(methods))
 	for _, m := range methods {
 		if methodMap[m.Name] {
@@ -186,8 +187,16 @@ func newTamplateParamTable(packageRoot string, table MysqlTable, commonColumns [
 		methodMap[m.Name] = true
 		pTable.CustomMethods = append(pTable.CustomMethods, m)
 	}
-	// using types
-	var idx = 0
+	// set using type for method params
+	uniquer := NewUniquer()
+	for _, m := range methods {
+		for _, p := range m.Params {
+			uniquer.Add(p.Type)
+		}
+	}
+	pTable.CustomMethodUseTypes = uniquer.Uniq()
+	// set using types
+	idx := 0
 	pTable.UseTypes = make([]string, len(typeMap))
 	for key := range typeMap {
 		pTable.UseTypes[idx] = key

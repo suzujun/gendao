@@ -5,6 +5,10 @@ import (
 	"strings"
 )
 
+type Uniquer struct {
+	data map[string]bool
+}
+
 func parseIntPointer(val *sql.NullInt64) *uint {
 	if val.Valid {
 		uintVal := uint(val.Int64)
@@ -34,4 +38,35 @@ func stringsContains(s interface{}, substr string) bool {
 	default:
 		return false
 	}
+}
+
+func unique(s []string) []string {
+	uq := NewUniquer()
+	for _, v := range s {
+		uq.Add(v)
+	}
+	return uq.Uniq()
+}
+
+// -----------------
+// Uniquer
+// -----------------
+
+func NewUniquer() *Uniquer {
+	return &Uniquer{
+		data: map[string]bool{},
+	}
+}
+func (u *Uniquer) Add(s string) {
+	u.data[s] = true
+}
+
+func (u *Uniquer) Uniq() []string {
+	var i int
+	res := make([]string, len(u.data))
+	for v := range u.data {
+		res[i] = v
+		i++
+	}
+	return res
 }
