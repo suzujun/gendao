@@ -15,8 +15,8 @@ import (
 	"gopkg.in/gorp.v1"{{range .Table.CustomMethodUseTypes}}{{if eq . "null.Time"}}
 	"gopkg.in/guregu/null.v3"{{end}}{{end}}
 
-	"{{ .Config.PackageRoot }}/dao/ranger"
-	"{{ .Config.PackageRoot }}/model"
+	{{if .Table.CustomMethodUseRanger}}"{{ .Config.PackageRoot }}/dao/ranger"
+	{{end}}"{{ .Config.PackageRoot }}/model"
 )
 {{$TableNamePascal := .Table.NameByPascalcase}}
 {{$TableNameCamel := .Table.NameByCamelcase}}
