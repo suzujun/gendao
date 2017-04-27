@@ -17,41 +17,82 @@ func TestScaffoldIndexMethod_GenCustomMethods(t *testing.T) {
 			Type:             typ,
 		}
 	}
-	indexes := []TemplateDataIndex{
+	tests := []struct {
+		title string
+		index TemplateDataIndex
+	}{
 		{
-			Columns: []TemplateDataColumn{
-				genTemplateDataColumn("id", "string"),
+			title: "uniq:index{id}",
+			index: TemplateDataIndex{
+				Columns: []TemplateDataColumn{
+					genTemplateDataColumn("id", "string"),
+				},
+				Unique:  true,
+				Primary: true,
 			},
-			Unique:  true,
-			Primary: true,
 		},
 		{
-			Columns: []TemplateDataColumn{
-				genTemplateDataColumn("channel_id", "int"),
+			title: "uniq:index{channel_id}",
+			index: TemplateDataIndex{
+				Columns: []TemplateDataColumn{
+					genTemplateDataColumn("channel_id", "int"),
+				},
+				Unique:  true,
+				Primary: false,
 			},
-			Unique:  false,
-			Primary: false,
 		},
 		{
-			Columns: []TemplateDataColumn{
-				genTemplateDataColumn("stream_name", "string"),
-				genTemplateDataColumn("edition", "string"),
-				genTemplateDataColumn("sequence", "int"),
+			title: "no-uniq:index{channel_id}",
+			index: TemplateDataIndex{
+				Columns: []TemplateDataColumn{
+					genTemplateDataColumn("channel_id", "int"),
+				},
+				Unique:  false,
+				Primary: false,
 			},
-			Unique:  true,
-			Primary: true,
+		},
+		{
+			title: "uniq:index{stream_name,edition,sequence}",
+			index: TemplateDataIndex{
+				Columns: []TemplateDataColumn{
+					genTemplateDataColumn("stream_name", "string"),
+					genTemplateDataColumn("edition", "string"),
+					genTemplateDataColumn("sequence", "int"),
+				},
+				Unique:  true,
+				Primary: true,
+			},
+		},
+		{
+			title: "uniq:index{program_id,start_questioning_at}",
+			index: TemplateDataIndex{
+				Columns: []TemplateDataColumn{
+					genTemplateDataColumn("program_id", "string"),
+					genTemplateDataColumn("start_questioning_at", "null.Time"),
+				},
+				Unique:  true,
+				Primary: true,
+			},
 		},
 	}
-	for _, tIndex := range indexes {
-		methods := GenCustomMethods(tIndex, "Thumbnail")
-		for i, method := range methods {
-			params := make([]string, len(method.Params))
-			for i, p := range method.Params {
-				params[i] = fmt.Sprintf("%s %s", p.NameByCamelcase, p.Type)
+	for _, test := range tests {
+		t.Run(test.title, func(t *testing.T) {
+			methods := GenCustomMethods(test.index, "Thumbnail")
+			for i, method := range methods {
+				params := make([]string, len(method.Params))
+				for i, p := range method.Params {
+					params[i] = fmt.Sprintf("%s %s", p.NameByCamelcase, p.Type)
+				}
+				var result string
+				if method.ReturnMany {
+					result = fmt.Sprintf("model.%sSlice, error", method.ReturnModel)
+				} else {
+					result = fmt.Sprintf("*model.%s, error", method.ReturnModel)
+				}
+				fmt.Println(i, fmt.Sprintf("%s(%s) (%s)", method.Name, strings.Join(params, ", "), result))
 			}
-			fmt.Println(i, fmt.Sprintf("%s(%s)", method.Name, strings.Join(params, ", ")))
-		}
-		println("-------------")
+			fmt.Println()
+		})
 	}
 }
 
