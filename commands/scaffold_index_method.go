@@ -35,25 +35,40 @@ func GenCustomMethods(tIndex TemplateDataIndex, modelName string) []CustomMethod
 	columns := tIndex.Columns
 	var methods []*CustomMethod
 	for i, column := range columns {
+		last := i == max-1
+		unique := last && tIndex.Unique
 		params := convCustomMethodParams(columns[:i+1], true)
-		orders := columns
-		if i == max-1 && tIndex.Unique {
+		var orders []TemplateDataColumn
+		if !last {
+			orders = columns[i+1:]
+		}
+		// -------------------
+		// Single designation
+		// -------------------
+		if last {
 			// e.g. FindByID(id) return one
-			methods = append(methods, genCustomMethod(params, nil, nil, modelName, tIndex.Unique, false, false))
+			methods = append(methods, genCustomMethod(params, nil, nil, modelName, unique, false))
 		} else {
 			// e.g. FindByIdOrderByIDAsc(id, limit) return many
 			// e.g. FindByIdOrderByIDDesc(id, limit) return many
-			methods = append(methods, genCustomMethod(params, nil, orders, modelName, tIndex.Unique, true, false)) // ASC
-			methods = append(methods, genCustomMethod(params, nil, orders, modelName, tIndex.Unique, true, true))  // DESC
+			methods = append(methods, genCustomMethod(params, nil, orders, modelName, false, false)) // ASC
+			methods = append(methods, genCustomMethod(params, nil, orders, modelName, false, true))  // DESC
 		}
+		// -------------------
+		// Multiple designation
+		// -------------------
 		params = convCustomMethodParams(columns[:i], true)
 		rangeParam := newCustomMethodParam(column.Name, column.Type, false)
-		// e.g. FindByIds(ids...) return many
-		methods = append(methods, genCustomMethod(params, &rangeParam, nil, modelName, tIndex.Unique, true, false))
-		// e.g. FindByIdsOrderByIDAsc(limit, rangeFunc...) return many
-		// e.g. FindByIdsOrderByIDDesc(limit, rangeFunc...) return many
-		methods = append(methods, genCustomMethod(params, &rangeParam, orders, modelName, tIndex.Unique, true, false)) // ASC
-		methods = append(methods, genCustomMethod(params, &rangeParam, orders, modelName, tIndex.Unique, true, true))  // DESC
+		orders = columns[i:]
+		if last {
+			// e.g. FindByIds(ids...) return many
+			methods = append(methods, genCustomMethod(params, &rangeParam, nil, modelName, false, false))
+		} else {
+			// e.g. FindByIdsOrderByIDAsc(limit, rangeFunc...) return many
+			// e.g. FindByIdsOrderByIDDesc(limit, rangeFunc...) return many
+			methods = append(methods, genCustomMethod(params, &rangeParam, orders, modelName, false, false)) // ASC
+			methods = append(methods, genCustomMethod(params, &rangeParam, orders, modelName, false, true))  // DESC
+		}
 	}
 	res := make([]CustomMethod, 0, len(methods))
 	for _, m := range methods {
@@ -83,7 +98,7 @@ func convCustomMethodParams(cols []TemplateDataColumn, where bool) CustomMethodP
 	return params
 }
 
-func genCustomMethod(params CustomMethodParams, rangeParam *CustomMethodParam, orders []TemplateDataColumn, modelName string, unique, returnMany, desc bool) *CustomMethod {
+func genCustomMethod(params CustomMethodParams, rangeParam *CustomMethodParam, orders []TemplateDataColumn, modelName string, unique, desc bool) *CustomMethod {
 	method := CustomMethod{}
 	method.Params = params
 	if rangeParam != nil {
@@ -97,7 +112,7 @@ func genCustomMethod(params CustomMethodParams, rangeParam *CustomMethodParam, o
 			if typ == "" {
 				return nil
 			}
-			rangeFncs := newCustomMethodParam("range_fncs", "..."+typ, false)
+			rangeFncs := newCustomMethodParam(rangeParam.Name+"_range_fncs", "..."+typ, false)
 			method.Params = append(method.Params, rangeFncs)
 		}
 		method.Orders = convCustomMethodParams(orders, false)
@@ -113,7 +128,7 @@ func genCustomMethod(params CustomMethodParams, rangeParam *CustomMethodParam, o
 	method.ReturnModel = modelName
 	method.Unique = unique
 	method.Desc = desc
-	method.ReturnMany = returnMany
+	method.ReturnMany = !unique
 	method.setName()
 	return &method
 }
@@ -134,7 +149,7 @@ func (cm *CustomMethod) setName() {
 		if cm.Desc {
 			ascDesc = "Desc"
 		}
-		names = append(names, "OrderBy", cm.Orders.joinName(""), ascDesc)
+		names = append(names, "OrderBy", cm.Orders.joinName("And"), ascDesc)
 	}
 	cm.Name = strings.Join(names, "")
 }
