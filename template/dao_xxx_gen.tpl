@@ -15,7 +15,7 @@ import (
 	"gopkg.in/gorp.v1"{{range .Table.CustomMethodUseTypes}}{{if eq . "null.Time"}}
 	"gopkg.in/guregu/null.v3"{{end}}{{end}}
 
-	{{if .Table.CustomMethodUseRanger}}"{{ .Config.PackageRoot }}/dao/ranger"
+	{{if .Table.CustomMethodUseRanger}}"{{ .Config.PackageRoot }}/ranger"
 	{{end}}"{{ .Config.PackageRoot }}/model"
 )
 {{$TableNamePascal := .Table.NameByPascalcase}}
@@ -57,9 +57,9 @@ func (dao {{ $TableNamePascal }}Dao) {{template "part_method_name.tpl" .}} {
 		Where(sq.Eq{"{{.Name}}": {{.NameByCamelcase}}}){{end}}{{end}}{{if .Orders}}.{{$desc := .Desc}}
 		OrderBy({{range $i, $p := .Orders}}{{if ne $i 0}}, {{end}}"{{.Name}}{{if $desc}} desc{{end}}"{{end}}){{end}}{{range .Params}}{{if eq .Name "limit"}}.
 		Limit(limit){{end}}{{end}}{{if .RangeParam}}{{if contains .RangeParam.Type "int"}}
-	builder = ranger.SetWhereInt(builder, "{{.RangeParam.Name}}", {{.RangeParam.NameByCamelcase}}rangeFncs){{else if contains .RangeParam.Type "string"}}
-	builder = ranger.SetWhereStr(builder, "{{.RangeParam.Name}}", {{.RangeParam.NameByCamelcase}}rangeFncs){{else if contains .RangeParam.Type "time"}}
-	builder = ranger.SetWhereTime(builder, "{{.RangeParam.Name}}", {{.RangeParam.NameByCamelcase}}rangeFncs){{end}}{{end}}{{if .ReturnMany}}
+	builder = ranger.SetWhereInt(builder, "{{.RangeParam.Name}}", {{.RangeParam.NameByCamelcase}}RangeFncs){{else if contains .RangeParam.Type "string"}}
+	builder = ranger.SetWhereStr(builder, "{{.RangeParam.Name}}", {{.RangeParam.NameByCamelcase}}RangeFncs){{else if contains .RangeParam.Type "time"}}
+	builder = ranger.SetWhereTime(builder, "{{.RangeParam.Name}}", {{.RangeParam.NameByCamelcase}}RangeFncs){{end}}{{end}}{{if .ReturnMany}}
 	return dao.findManyByBuilder(&builder){{else}}
 	return dao.findOneByBuilder(&builder){{end}}
 }
