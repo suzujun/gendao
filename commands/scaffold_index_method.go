@@ -63,12 +63,11 @@ func GenCustomMethods(tIndex TemplateDataIndex, modelName string) []CustomMethod
 		if last {
 			// e.g. FindByIds(ids...) return many
 			methods = append(methods, genCustomMethod(params, &rangeParam, nil, modelName, false, false))
-		} else {
-			// e.g. FindByIdsOrderByIDAsc(limit, rangeFunc...) return many
-			// e.g. FindByIdsOrderByIDDesc(limit, rangeFunc...) return many
-			methods = append(methods, genCustomMethod(params, &rangeParam, orders, modelName, false, false)) // ASC
-			methods = append(methods, genCustomMethod(params, &rangeParam, orders, modelName, false, true))  // DESC
 		}
+		// e.g. FindByIdsOrderByIDAsc(limit, rangeFunc...) return many
+		// e.g. FindByIdsOrderByIDDesc(limit, rangeFunc...) return many
+		methods = append(methods, genCustomMethod(params, &rangeParam, orders, modelName, false, false)) // ASC
+		methods = append(methods, genCustomMethod(params, &rangeParam, orders, modelName, false, true))  // DESC
 	}
 	res := make([]CustomMethod, 0, len(methods))
 	for _, m := range methods {
