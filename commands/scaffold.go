@@ -31,17 +31,18 @@ type (
 	}
 	// TemplateDataTable ...
 	TemplateDataTable struct {
-		Name                 string
-		NameByCamelcase      string
-		NameByPascalcase     string
-		ColumnsName          string
-		Columns              []TemplateDataColumn
-		PrimaryKey           TemplateDataIndex
-		Indexes              []TemplateDataIndex
-		UsePackages          [][]string
-		UseTypes             []string
-		CustomMethods        []CustomMethod
-		CustomMethodUseTypes []string
+		Name                  string
+		NameByCamelcase       string
+		NameByPascalcase      string
+		ColumnsName           string
+		Columns               []TemplateDataColumn
+		PrimaryKey            TemplateDataIndex
+		Indexes               []TemplateDataIndex
+		UsePackages           [][]string
+		UseTypes              []string
+		CustomMethods         []CustomMethod
+		CustomMethodUseTypes  []string
+		CustomMethodUseRanger bool
 	}
 	// TemplateDataColumn ...
 	TemplateDataColumn struct {
@@ -192,6 +193,9 @@ func newTamplateParamTable(packageRoot string, table MysqlTable, commonColumns [
 	for _, m := range methods {
 		for _, p := range m.Params {
 			uniquer.Add(p.Type)
+			if strings.Contains(p.Type, "ranger.") {
+				pTable.CustomMethodUseRanger = true
+			}
 		}
 	}
 	pTable.CustomMethodUseTypes = uniquer.Uniq()
