@@ -1,4 +1,4 @@
-package commands
+package scaffold
 
 import (
 	"bytes"
@@ -10,6 +10,9 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/suzujun/gendao/dependency"
+	"github.com/suzujun/gendao/helper"
+	"github.com/suzujun/gendao/helper/mysql"
 )
 
 type (
@@ -25,7 +28,7 @@ type (
 	}
 	// TemplateData ...
 	TemplateData struct {
-		Config        Config
+		Config        dependency.Config
 		Table         TemplateDataTable
 		CommonColumns []TemplateDataColumn
 	}
@@ -55,7 +58,7 @@ type (
 		AutoIncrement    bool
 		Unique           bool
 		SampleValue      string
-		MysqlColumn
+		mysql.Column
 	}
 	// TemplateDataIndex ...
 	TemplateDataIndex struct {
@@ -67,13 +70,13 @@ type (
 	}
 )
 
-func NewTemplate(inputPath string, tmplFiles []TemplateFile, outputPath string) (*MyTemplate, error) {
+func NewTemplate(inputPath string, tmplFiles []dependency.TemplateFile, outputPath string) (*MyTemplate, error) {
 	funcMap := template.FuncMap{
 		"title": strings.Title,
 		"now": func() string {
 			return time.Now().Format(time.RFC3339)
 		},
-		"contains": stringsContains,
+		"contains": helper.StringsContains,
 	}
 	// load template
 	files := make([]string, len(tmplFiles))
@@ -81,13 +84,13 @@ func NewTemplate(inputPath string, tmplFiles []TemplateFile, outputPath string) 
 	for i, target := range tmplFiles {
 		files[i] = filepath.Join(inputPath, target.Name)
 		// check exists template file
-		if !IsFileExist(files[i]) {
+		if !helper.IsFileExist(files[i]) {
 			return nil, errors.Errorf("not found template file, [%s]", files[i])
 		}
 		// check output dir
 		path := filepath.Join(outputPath, target.ExportName)
 		dirPath := filepath.Dir(path)
-		if err := createDirIfNotExist(dirPath); err != nil {
+		if err := helper.CreateDirIfNotExist(dirPath); err != nil {
 			return nil, errors.Errorf("%s, path=[%s]", err, dirPath)
 		}
 		if target.ExportName == "" {
@@ -107,21 +110,21 @@ func NewTemplate(inputPath string, tmplFiles []TemplateFile, outputPath string) 
 	return &tp, nil
 }
 
-func (my MyTemplate) outputSourceFileTable(data TemplateData) error {
+func (my MyTemplate) OutputSourceFileTable(data TemplateData) error {
 	for _, config := range my.ExportConfigs {
 		tmpl := my.Template.Lookup(config.TemplateName)
 		buff := bytes.NewBuffer([]byte{})
 		if err := tmpl.Execute(buff, data); err != nil {
 			return err
 		}
-		name := NewWordConverter(data.Table.Name).Singularize().ToString()
+		name := helper.NewWordConverter(data.Table.Name).Singularize().ToString()
 		path := strings.Replace(config.ExportPathName, "{name}", name, -1)
 		var res int
 		var err error
 		if config.Overwrite {
-			res, err = createFile(path, buff.Bytes())
+			res, err = helper.CreateFile(path, buff.Bytes())
 		} else {
-			res, err = createFileIfNotExist(path, buff.Bytes())
+			res, err = helper.CreateFileIfNotExist(path, buff.Bytes())
 		}
 		if err != nil {
 			return err
@@ -137,14 +140,14 @@ func (my MyTemplate) outputSourceFileTable(data TemplateData) error {
 
 var stdlibReg = regexp.MustCompile("^[a-z0-9/]+$")
 
-func newTamplateParamTable(packageRoot string, table MysqlTable, commonColumns []string, customTypeMap map[string]*CustomColumnType) TemplateDataTable {
+func NewTamplateParamTable(packageRoot string, table mysql.Table, commonColumns []string, customTypeMap map[string]*dependency.CustomColumnType) TemplateDataTable {
 	pTable := TemplateDataTable{}
 	if len(table.Columns) == 0 {
 		return pTable
 	}
 	pTable.Name = table.Columns[0].TableName
-	pTable.NameByCamelcase = NewWordConverter(table.Columns[0].TableName).Camelcase().Singularize().ToString()
-	pTable.NameByPascalcase = NewWordConverter(table.Columns[0].TableName).Pascalcase().Singularize().ToString()
+	pTable.NameByCamelcase = helper.NewWordConverter(table.Columns[0].TableName).Camelcase().Singularize().ToString()
+	pTable.NameByPascalcase = helper.NewWordConverter(table.Columns[0].TableName).Pascalcase().Singularize().ToString()
 	pTable.Columns = make([]TemplateDataColumn, 0, len(table.Columns))
 
 	// get column info
@@ -189,7 +192,7 @@ func newTamplateParamTable(packageRoot string, table MysqlTable, commonColumns [
 		pTable.CustomMethods = append(pTable.CustomMethods, m)
 	}
 	// set using type for method params
-	uniquer := NewUniquer()
+	uniquer := helper.NewUniquer()
 	for _, m := range methods {
 		for _, p := range m.Params {
 			uniquer.Add(p.Type)
@@ -226,14 +229,14 @@ func newTamplateParamTable(packageRoot string, table MysqlTable, commonColumns [
 	return pTable
 }
 
-func newTemplateParamColumn(column MysqlColumn, commonColumns []string, customType *CustomColumnType) TemplateDataColumn {
-	tpc := TemplateDataColumn{MysqlColumn: column}
+func newTemplateParamColumn(column mysql.Column, commonColumns []string, customType *dependency.CustomColumnType) TemplateDataColumn {
+	tpc := TemplateDataColumn{Column: column}
 	tpc.Name = column.ColumnName
-	tpc.NameByCamelcase = NewWordConverter(column.ColumnName).Camelcase().Lint().ToString()
-	tpc.NameByPascalcase = NewWordConverter(column.ColumnName).Pascalcase().Lint().ToString()
+	tpc.NameByCamelcase = helper.NewWordConverter(column.ColumnName).Camelcase().Lint().ToString()
+	tpc.NameByPascalcase = helper.NewWordConverter(column.ColumnName).Pascalcase().Lint().ToString()
 	tpc.Primary = column.Primary()
 	tpc.Unique = column.Unique()
-	tpc.Common = stringsContains(commonColumns, column.ColumnName)
+	tpc.Common = helper.StringsContains(commonColumns, column.ColumnName)
 	if customType != nil {
 		tpc.Type = customType.Type
 		tpc.SampleValue = customType.SampleValue
@@ -245,7 +248,7 @@ func newTemplateParamColumn(column MysqlColumn, commonColumns []string, customTy
 	return tpc
 }
 
-func newTemplateParamIndex(indexes []MysqlIndex, pColumns []TemplateDataColumn) []TemplateDataIndex {
+func newTemplateParamIndex(indexes []mysql.Index, pColumns []TemplateDataColumn) []TemplateDataIndex {
 	pIndexes := []TemplateDataIndex{}
 	if len(indexes) == 0 || len(pColumns) == 0 {
 		return pIndexes
@@ -302,7 +305,7 @@ func (tdc *TemplateDataColumn) getUsePackage() string {
 }
 
 func (tdc *TemplateDataColumn) setType() {
-	tdc.Type = (func(mc MysqlColumn) string {
+	tdc.Type = (func(mc mysql.Column) string {
 		unsigned := mc.Unsigned()
 		switch mc.DataType {
 		case "char", "varchar", "enum", "set":
@@ -363,13 +366,13 @@ func (tdc *TemplateDataColumn) setType() {
 		default:
 			return "interface{}"
 		}
-	})(tdc.MysqlColumn)
+	})(tdc.Column)
 }
 
 func (tdc *TemplateDataColumn) setSampleValue() {
 	tdc.SampleValue = (func(c *TemplateDataColumn) string {
 		if c.Type == "string" || c.Type == "null.String" {
-			max := int(*c.MysqlColumn.CharacterMaximumLength)
+			max := int(*c.Column.CharacterMaximumLength)
 			min := max / 3
 			if c.Type == "null.String" {
 				return fmt.Sprintf("randNullStringRange(%d, %d)", min, max)
@@ -380,7 +383,7 @@ func (tdc *TemplateDataColumn) setSampleValue() {
 		} else if strings.HasPrefix(c.Type, "null.") {
 			switch c.Type {
 			case "null.Int":
-				r := c.MysqlColumn.DataTypeRange()
+				r := c.Column.DataTypeRange()
 				return fmt.Sprintf("randNullInt(%d)", r.Max)
 			case "null.Float":
 				return "randNullFloat()"

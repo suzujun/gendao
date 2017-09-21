@@ -3,10 +3,13 @@ package commands
 import (
 	"fmt"
 	"path/filepath"
+
+	"github.com/suzujun/gendao/helper"
+	"github.com/suzujun/gendao/helper/mysql"
 )
 
-func writeTablesJSON(con *MysqlConnection, outputPath string) error {
-	if err := createDirIfNotExist(outputPath); err != nil {
+func writeTablesJSON(con *mysql.Connection, outputPath string) error {
+	if err := helper.CreateDirIfNotExist(outputPath); err != nil {
 		return err
 	}
 	tables, err := con.GetTableNames()
@@ -14,7 +17,7 @@ func writeTablesJSON(con *MysqlConnection, outputPath string) error {
 		return err
 	}
 	for _, tname := range tables {
-		mt, err := con.GetMysqlTable(tname)
+		mt, err := con.GetTable(tname)
 		if err != nil {
 			return err
 		}

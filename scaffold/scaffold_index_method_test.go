@@ -1,4 +1,4 @@
-package commands
+package scaffold
 
 import (
 	"fmt"
@@ -6,14 +6,15 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/suzujun/gendao/helper"
 )
 
 func TestScaffoldIndexMethod_GenCustomMethods(t *testing.T) {
 	genTemplateDataColumn := func(name, typ string) TemplateDataColumn {
 		return TemplateDataColumn{
 			Name:             name,
-			NameByCamelcase:  NewWordConverter(name).Camelcase().Lint().ToString(),
-			NameByPascalcase: NewWordConverter(name).Pascalcase().Lint().ToString(),
+			NameByCamelcase:  helper.NewWordConverter(name).Camelcase().Lint().ToString(),
+			NameByPascalcase: helper.NewWordConverter(name).Pascalcase().Lint().ToString(),
 			Type:             typ,
 		}
 	}

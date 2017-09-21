@@ -7,18 +7,23 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/suzujun/gendao/dependency"
+	"github.com/suzujun/gendao/helper"
+	"github.com/suzujun/gendao/helper/mysql"
+	"github.com/suzujun/gendao/scaffold"
 )
 
 type (
 	Command struct {
-		Config Config
+		Config dependency.Config
 		ReadAt time.Time
 	}
 )
 
 // NewCommandFromJSON new command from json file
 func NewCommandFromJSON(configPath, dbName string) (*Command, error) {
-	b, err := readFile(configPath)
+	b, err := helper.ReadFile(configPath)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +41,7 @@ func NewCommandFromJSON(configPath, dbName string) (*Command, error) {
 // GenerateJSON generate json file
 func (cmd Command) GenerateJSON() error {
 	dbconf := cmd.Config.MysqlConfig
-	con, err := NewConnection(dbconf.User, dbconf.Password, dbconf.DbName, false)
+	con, err := mysql.NewConnection(dbconf.User, dbconf.Password, dbconf.DbName, false)
 	if err != nil {
 		return err
 	}
@@ -68,28 +73,28 @@ func (cmd Command) GenerateSourceFromJSON(table string) error {
 	}
 
 	// check and craete output path
-	if err := createDirIfNotExist(config.OutputSourcePath); err != nil {
+	if err := helper.CreateDirIfNotExist(config.OutputSourcePath); err != nil {
 		return err
 	}
 
-	myTemplate, err := NewTemplate(config.InputTemplatePath, config.TemplateToTableLoop, config.OutputSourcePath)
+	myTemplate, err := scaffold.NewTemplate(config.InputTemplatePath, config.TemplateToTableLoop, config.OutputSourcePath)
 	if err != nil {
 		return err
 	}
 
-	var pTables []TemplateDataTable
+	var pTables []scaffold.TemplateDataTable
 	var outputSource = func(path string) error {
-		var table MysqlTable
-		if err := readFileJSON(path, &table); err != nil {
+		var table mysql.Table
+		if err := helper.ReadFileJSON(path, &table); err != nil {
 			return err
 		}
 		fmt.Println("file:", path)
-		pTable := newTamplateParamTable(cmd.Config.PackageRoot, table, config.CommonColumns, config.CustomColumnType)
-		data := TemplateData{
+		pTable := scaffold.NewTamplateParamTable(cmd.Config.PackageRoot, table, config.CommonColumns, config.CustomColumnType)
+		data := scaffold.TemplateData{
 			Config: cmd.Config,
 			Table:  pTable,
 		}
-		if err := myTemplate.outputSourceFileTable(data); err != nil {
+		if err := myTemplate.OutputSourceFileTable(data); err != nil {
 			return err
 		}
 		pTables = append(pTables, pTable)
@@ -112,7 +117,7 @@ func (cmd Command) GenerateSourceFromJSON(table string) error {
 			}
 			name := info.Name()
 			tableName := strings.TrimSuffix(name, ".json")
-			if len(targetTables) == 0 && stringsContains(cmd.Config.IgnoreTableNames, tableName) {
+			if len(targetTables) == 0 && helper.StringsContains(cmd.Config.IgnoreTableNames, tableName) {
 				fmt.Println("file:", name, "[ignore]")
 				return nil
 			}
@@ -130,12 +135,12 @@ func (cmd Command) GenerateSourceFromJSON(table string) error {
 		return nil
 	}
 
-	myTemplate, err = NewTemplate(config.InputTemplatePath, config.TemplateByOnce, config.OutputSourcePath)
+	myTemplate, err = scaffold.NewTemplate(config.InputTemplatePath, config.TemplateByOnce, config.OutputSourcePath)
 	if err != nil {
 		return err
 	}
 
-	data := TemplateData{
+	data := scaffold.TemplateData{
 		Config: cmd.Config,
 	}
 
@@ -149,5 +154,5 @@ func (cmd Command) GenerateSourceFromJSON(table string) error {
 			}
 		}
 	}
-	return myTemplate.outputSourceFileTable(data)
+	return myTemplate.OutputSourceFileTable(data)
 }

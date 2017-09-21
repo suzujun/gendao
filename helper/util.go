@@ -1,4 +1,4 @@
-package commands
+package helper
 
 import (
 	"database/sql"
@@ -9,7 +9,7 @@ type Uniquer struct {
 	data map[string]bool
 }
 
-func parseIntPointer(val *sql.NullInt64) *uint {
+func ParseIntPointer(val *sql.NullInt64) *uint {
 	if val.Valid {
 		uintVal := uint(val.Int64)
 		return &uintVal
@@ -17,14 +17,14 @@ func parseIntPointer(val *sql.NullInt64) *uint {
 	return nil
 }
 
-func parseStringPointer(val *sql.NullString) *string {
+func ParseStringPointer(val *sql.NullString) *string {
 	if val.Valid {
 		return &val.String
 	}
 	return nil
 }
 
-func stringsContains(s interface{}, substr string) bool {
+func StringsContains(s interface{}, substr string) bool {
 	switch d := s.(type) {
 	case string:
 		return strings.Contains(d, substr)
@@ -40,7 +40,7 @@ func stringsContains(s interface{}, substr string) bool {
 	}
 }
 
-func unique(s []string) []string {
+func Unique(s []string) []string {
 	uq := NewUniquer()
 	for _, v := range s {
 		uq.Add(v)

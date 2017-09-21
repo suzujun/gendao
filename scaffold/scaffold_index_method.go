@@ -1,8 +1,10 @@
-package commands
+package scaffold
 
 import (
 	"fmt"
 	"strings"
+
+	"github.com/suzujun/gendao/helper"
 )
 
 type (
@@ -80,7 +82,7 @@ func GenCustomMethods(tIndex TemplateDataIndex, modelName string) []CustomMethod
 }
 
 func newCustomMethodParam(name, typ string, where bool) CustomMethodParam {
-	wc := NewWordConverter(name)
+	wc := helper.NewWordConverter(name)
 	return CustomMethodParam{
 		Name:             name,
 		NameByCamelcase:  wc.Camelcase().Lint().ToString(),
@@ -117,7 +119,7 @@ func genCustomMethod(params CustomMethodParams, rangeParam *CustomMethodParam, o
 		method.Orders = convCustomMethodParams(orders, false)
 	}
 	if len(orders) == 0 && rangeParam != nil {
-		name := NewWordConverter(rangeParam.Name).Pluralize().ToString()
+		name := helper.NewWordConverter(rangeParam.Name).Pluralize().ToString()
 		typ := fmt.Sprintf("[]%s", rangeParam.Type)
 		rp := newCustomMethodParam(name, typ, true)
 		rp.Name = rangeParam.Name // set original name
@@ -140,7 +142,7 @@ func (cm *CustomMethod) setName() {
 		}
 	}
 	if cm.RangeParam != nil {
-		names = append(names, NewWordConverter(cm.RangeParam.Name).Pascalcase().Pluralize().Lint().ToString())
+		names = append(names, helper.NewWordConverter(cm.RangeParam.Name).Pascalcase().Pluralize().Lint().ToString())
 	}
 	names = []string{"FindBy", strings.Join(names, "And")}
 	if len(cm.Orders) > 0 {
@@ -157,7 +159,7 @@ func (cmps CustomMethodParams) joinName(sep string) string {
 	res := make([]string, len(cmps))
 	for i, cmp := range cmps {
 		if i == len(cmps)-1 {
-			res[i] = NewWordConverter(cmp.Name).Pascalcase().Lint().ToString()
+			res[i] = helper.NewWordConverter(cmp.Name).Pascalcase().Lint().ToString()
 		} else {
 			res[i] = cmp.NameByPascalcase
 		}
