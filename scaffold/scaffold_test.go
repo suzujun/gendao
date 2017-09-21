@@ -1,15 +1,17 @@
-package commands
+package scaffold
 
 import (
-	"io/ioutil"
-	"testing"
-
 	"fmt"
-
+	"io/ioutil"
 	"path/filepath"
+	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/suzujun/gendao/dependency"
+	"github.com/suzujun/gendao/helper"
+	"github.com/suzujun/gendao/helper/mysql"
 )
 
 func TestScaffold_NewTemplate(t *testing.T) {
@@ -21,14 +23,14 @@ func TestScaffold_NewTemplate(t *testing.T) {
 	filenames := make([]string, 3)
 	for i := range filenames {
 		filenames[i] = fmt.Sprintf("template_%05d.tmp", i)
-		_, err := createFile(filepath.Join(dir, filenames[i]), fmt.Sprintf("template%05d", i))
+		_, err := helper.CreateFile(filepath.Join(dir, filenames[i]), fmt.Sprintf("template%05d", i))
 		require.NoError(err)
 	}
 
 	assert := assert.New(t)
 
 	// sample templateFile
-	tmpfiles := []TemplateFile{
+	tmpfiles := []dependency.TemplateFile{
 		{
 			Name:       filenames[0],
 			ExportName: "template1_result.go",
@@ -118,8 +120,8 @@ func TestScaffold_setType(t *testing.T) {
 		title := fmt.Sprintf("%s_%s_%s", test.dataType, test.columnType, null)
 		t.Run(title, func(t *testing.T) {
 			assert := assert.New(t)
-			mc := MysqlColumn{DataType: test.dataType, IsNullable: test.nullable, ColumnType: test.columnType}
-			v := &TemplateDataColumn{MysqlColumn: mc}
+			mc := mysql.Column{DataType: test.dataType, IsNullable: test.nullable, ColumnType: test.columnType}
+			v := &TemplateDataColumn{Column: mc}
 			v.setType()
 			assert.Equal(test.want, v.Type)
 		})
@@ -128,7 +130,7 @@ func TestScaffold_setType(t *testing.T) {
 	filenames := make([]string, 3)
 	for i := range filenames {
 		filenames[i] = fmt.Sprintf("template_%05d.tmp", i)
-		_, err := createFile(filepath.Join(dir, filenames[i]), fmt.Sprintf("template%05d", i))
+		_, err := helper.CreateFile(filepath.Join(dir, filenames[i]), fmt.Sprintf("template%05d", i))
 		require.NoError(err)
 	}
 }

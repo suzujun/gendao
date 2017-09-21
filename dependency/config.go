@@ -1,10 +1,12 @@
-package commands
+package dependency
 
 import (
 	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/suzujun/gendao/helper"
 )
 
 type (
@@ -89,7 +91,7 @@ func (c Config) Write(path string) error {
 	if err != nil {
 		return err
 	}
-	_, err = createFile(path, b)
+	_, err = helper.CreateFile(path, b)
 	return err
 }
 

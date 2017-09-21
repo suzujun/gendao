@@ -1,4 +1,4 @@
-package commands
+package helper
 
 import (
 	"io/ioutil"
@@ -10,36 +10,36 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFile_createDirIfNotExist(t *testing.T) {
+func TestFile_CreateDirIfNotExist(t *testing.T) {
 	require := assert.New(t)
 	path, err := ioutil.TempDir("", "")
 	require.NoError(err)
 
 	assert := assert.New(t)
-	assert.NoError(createDirIfNotExist(path))
+	assert.NoError(CreateDirIfNotExist(path))
 
 	info, err := os.Stat(path)
 	require.NoError(err)
 	require.True(info.IsDir())
 }
 
-func TestFile_createFile_readFile(t *testing.T) {
+func TestFile_CreateFile_readFile(t *testing.T) {
 	require := assert.New(t)
 	dir, err := ioutil.TempDir("", "")
 	require.NoError(err)
 	path := dir + "/foo.txt"
 
 	assert := assert.New(t)
-	v, err := createFile(path, "hello world")
+	v, err := CreateFile(path, "hello world")
 	assert.NoError(err)
 	assert.True(v > 0)
 
-	b, err := readFile(path)
+	b, err := ReadFile(path)
 	assert.NoError(err)
 	assert.Equal(string(b), "hello world")
 }
 
-func TestFile_readFileJSON(t *testing.T) {
+func TestFile_ReadFileJSON(t *testing.T) {
 	require := assert.New(t)
 	dir, err := ioutil.TempDir("", "")
 	require.NoError(err)
@@ -55,11 +55,11 @@ func TestFile_readFileJSON(t *testing.T) {
 
 	// text file
 	textPath := dir + "/data.txt"
-	v, err := createFile(textPath, "hello world")
+	v, err := CreateFile(textPath, "hello world")
 	assert.NoError(err)
 	assert.True(v > 0)
 
-	assert.Error(readFileJSON(textPath, &importData))
+	assert.Error(ReadFileJSON(textPath, &importData))
 	assert.Empty(importData.StringValue)
 
 	// json file
@@ -71,9 +71,9 @@ func TestFile_readFileJSON(t *testing.T) {
 	b, err := json.Marshal(data)
 	assert.NoError(err)
 	jsonPath := dir + "/data.json"
-	v, err = createFile(jsonPath, b)
+	v, err = CreateFile(jsonPath, b)
 	assert.NoError(err)
 	assert.True(v > 0)
-	assert.NoError(readFileJSON(jsonPath, &importData))
+	assert.NoError(ReadFileJSON(jsonPath, &importData))
 	assert.Equal(importData, data)
 }

@@ -1,4 +1,4 @@
-package commands
+package helper
 
 import (
 	"testing"
@@ -6,33 +6,33 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUtil_stringsContains(t *testing.T) {
+func TestUtil_StringsContains(t *testing.T) {
 	assert := assert.New(t)
 	strs := []string{"aaa", "bbb", "ccc"}
 
 	// []strings: match
-	assert.True(stringsContains(strs, "bbb"))
+	assert.True(StringsContains(strs, "bbb"))
 
 	// []strings: unmatch
-	assert.False(stringsContains(strs, "ddd"))
+	assert.False(StringsContains(strs, "ddd"))
 
 	// []strings: unmatch
-	assert.False(stringsContains(strs, ""))
+	assert.False(StringsContains(strs, ""))
 
 	// string: match
-	assert.True(stringsContains("hogefuga", "fu"))
+	assert.True(StringsContains("hogefuga", "fu"))
 
 	// string: match to empty
-	assert.True(stringsContains("hogefuga", ""))
+	assert.True(StringsContains("hogefuga", ""))
 
 	// string: unmatch
-	assert.False(stringsContains("hogefuga", "piyo"))
+	assert.False(StringsContains("hogefuga", "piyo"))
 
 	// int: unmatch
-	assert.False(stringsContains(12345, "234"))
+	assert.False(StringsContains(12345, "234"))
 }
 
-func TestUtil_unique(t *testing.T) {
+func TestUtil_Unique(t *testing.T) {
 
 	tests := []struct {
 		title string
@@ -63,7 +63,7 @@ func TestUtil_unique(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.title, func(t *testing.T) {
 			assert := assert.New(t)
-			res := unique(test.args)
+			res := Unique(test.args)
 			assert.Len(res, len(test.want))
 			for _, v := range test.want {
 				assert.Contains(res, v)
