@@ -13,5 +13,3 @@ test:
     - bash <(curl -s https://codecov.io/bash)
     - /home/ubuntu/.go_workspace/bin/goveralls -coverprofile=$COVERAGE_FILE -service=circle-ci -repotoken=$COVERALLS_TOKEN
     - CODECLIMATE_REPO_TOKEN=$CODECLIMATE_REPO_TOKEN codeclimate-test-reporter < coverage.txt
-    - # if [ "$CI_PULL_REQUEST" = true ]; then ./deploy.sh; fi
-    - sh ./deploy.sh
