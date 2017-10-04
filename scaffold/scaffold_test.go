@@ -74,6 +74,8 @@ func TestScaffold_setType(t *testing.T) {
 		{dataType: "varchar", nullable: true, want: "null.String"},
 		{dataType: "enum", want: "string"},
 		{dataType: "enum", nullable: true, want: "null.String"},
+		{dataType: "text", want: "string"},
+		{dataType: "text", nullable: true, want: "null.String"},
 		{dataType: "set", want: "string"},
 		{dataType: "set", nullable: true, want: "null.String"},
 		{dataType: "tinyint", nullable: true, want: "null.Int"},

@@ -308,7 +308,7 @@ func (tdc *TemplateDataColumn) setType() {
 	tdc.Type = (func(mc mysql.Column) string {
 		unsigned := mc.Unsigned()
 		switch mc.DataType {
-		case "char", "varchar", "enum", "set":
+		case "char", "varchar", "enum", "set", "text":
 			if mc.IsNullable {
 				return "null.String"
 			}
