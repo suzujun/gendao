@@ -12,6 +12,7 @@ import (
 	"gopkg.in/urfave/cli.v1"
 
 	"github.com/suzujun/gendao/commands"
+	"github.com/suzujun/gendao/dependency"
 )
 
 func main() {
@@ -98,7 +99,7 @@ func initAction(c *cli.Context) error {
 	user := getFlag(c, "user", "u")
 	password := getFlag(c, "password", "p")
 	dbname := getFlag(c, "database", "d")
-	b, err := commands.NewConfig(user, password, dbname).ExportJSON()
+	b, err := dependency.NewConfig(user, password, dbname).ExportJSON()
 	if err != nil {
 		return err
 	}
@@ -180,13 +181,13 @@ Press ^C at any time to quit.`)
 		}
 	}
 
-	data := commands.CustomColumnType{
+	data := dependency.CustomColumnType{
 		Type:         typ,
 		SampleValue:  sampleValue,
 		Package:      pkg,
 		PackageAlias: pkgAlias,
 	}
-	preview := map[string]commands.CustomColumnType{key: data}
+	preview := map[string]dependency.CustomColumnType{key: data}
 	b, err := json.MarshalIndent(preview, "", "  ")
 	if err != nil {
 		return err

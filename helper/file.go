@@ -1,4 +1,4 @@
-package commands
+package helper
 
 import (
 	"encoding/json"
@@ -11,7 +11,7 @@ const (
 	dirPerm = 0755
 )
 
-func readFile(path string) ([]byte, error) {
+func ReadFile(path string) ([]byte, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -20,7 +20,7 @@ func readFile(path string) ([]byte, error) {
 	return ioutil.ReadAll(file)
 }
 
-func readFileJSON(path string, v interface{}) error {
+func ReadFileJSON(path string, v interface{}) error {
 	file, err := os.Open(path)
 	if err != nil {
 		return err
@@ -29,13 +29,13 @@ func readFileJSON(path string, v interface{}) error {
 	return json.NewDecoder(file).Decode(v)
 }
 
-// createDirIfNotExist creates the directory to path if it doesn't exist.
-func createDirIfNotExist(path string) error {
+// CreateDirIfNotExist creates the directory to path if it doesn't exist.
+func CreateDirIfNotExist(path string) error {
 	return os.MkdirAll(path, dirPerm)
 }
 
-// createFile creates the file if it doesn't exist.
-func createFile(path string, output interface{}) (int, error) {
+// CreateFile creates the file if it doesn't exist.
+func CreateFile(path string, output interface{}) (int, error) {
 	file, err := os.Create(path)
 	if err != nil {
 		return 0, err
@@ -51,12 +51,12 @@ func createFile(path string, output interface{}) (int, error) {
 	}
 }
 
-// createFileIfNotExist creates the file if it doesn't exist.
-func createFileIfNotExist(path string, output interface{}) (int, error) {
+// CreateFileIfNotExist creates the file if it doesn't exist.
+func CreateFileIfNotExist(path string, output interface{}) (int, error) {
 	if IsFileExist(path) {
 		return 0, nil
 	}
-	return createFile(path, output)
+	return CreateFile(path, output)
 }
 
 func IsFileExist(path string) bool {
