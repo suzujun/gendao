@@ -182,6 +182,6 @@ func getRangeFncType(typ string) string {
 	} else if strings.Contains(typ, "time") {
 		return "ranger.RangeTimeFnc"
 	} else {
-		panic(fmt.Sprintf("unknown range func type [%s]", typ))
+		return "" // none range
 	}
 }
