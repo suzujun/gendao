@@ -9,7 +9,7 @@ import (
 
 // Model ...
 type Model struct { {{range .CommonColumns}}
-  {{ print .NameByPascalcase " " .Type "`db:\"" .Name "\"`" }}{{end}}
+  {{print .NameByPascalcase " " .Type "`db:\"" .Name "\"`"}}{{end}}
 }
 
 const baseString = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
