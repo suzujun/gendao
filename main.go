@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 	"regexp"
 
 	"gopkg.in/urfave/cli.v1"
@@ -225,9 +226,13 @@ func genAction(c *cli.Context) error {
 	if err := cmd.GenerateSourceFromJSON(table); err != nil {
 		return err
 	}
-	fmt.Println("run \"go fmt " + cmd.Config.OutputSourcePath + "/...\"")
-	if err := exec.Command("go", "fmt", cmd.Config.OutputSourcePath+"/...").Run(); err != nil {
-		return err
+	fmt.Println("run go fmt ...")
+	for _, p := range getFormatTargetPaths(cmd) {
+		out, err := exec.Command("go", "fmt", p).Output()
+		if err != nil {
+			return err
+		}
+		fmt.Print(" - ", string(out))
 	}
 	fmt.Println("ok.")
 	return nil
@@ -246,4 +251,32 @@ func getConfig(path, dbName string) (*commands.Command, error) {
 		cmd.Config.MysqlConfig.DbName = dbName
 	}
 	return cmd, nil
+}
+
+func getFormatTargetPaths(cmd *commands.Command) []string {
+	count := len(cmd.Config.TemplateByOnce)+len(cmd.Config.TemplateToTableLoop)
+	paths := make([]string,0, count)
+	uniqMap := make(map[string]bool, count)
+	appendPath := func(path string) {
+		if path == "" {
+			return
+		}
+		ss := strings.Split(path, "/")
+		if len(ss) <= 1 {
+			return
+		}
+		addPath := fmt.Sprintf("%s/%s", cmd.Config.OutputSourcePath, strings.Join(ss[:len(ss)-1],"/"))
+		if _, ok := uniqMap[addPath]; ok {
+			return
+		}
+		uniqMap[addPath] = true
+		paths = append(paths, addPath)
+	}
+	for _, tf := range cmd.Config.TemplateByOnce {
+		appendPath(tf.ExportName)
+	}
+	for _, tf := range cmd.Config.TemplateToTableLoop {
+		appendPath(tf.ExportName)
+	}
+	return paths
 }
