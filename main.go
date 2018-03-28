@@ -7,8 +7,8 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"strings"
 	"regexp"
+	"strings"
 
 	"gopkg.in/urfave/cli.v1"
 
@@ -230,11 +230,13 @@ func genAction(c *cli.Context) error {
 	for _, p := range getFormatTargetPaths(cmd) {
 		out, err := exec.Command("go", "fmt", p).Output()
 		if err != nil {
-			return err
+			// Do not interrupt by returning an error.
+			fmt.Println(fmt.Sprintf("[ERROR] go fmt %s", p))
+		} else if len(out) > 0 {
+			fmt.Print(" - ", string(out))
 		}
-		fmt.Print(" - ", string(out))
 	}
-	fmt.Println("ok.")
+	fmt.Println("done.")
 	return nil
 }
 
@@ -254,8 +256,8 @@ func getConfig(path, dbName string) (*commands.Command, error) {
 }
 
 func getFormatTargetPaths(cmd *commands.Command) []string {
-	count := len(cmd.Config.TemplateByOnce)+len(cmd.Config.TemplateToTableLoop)
-	paths := make([]string,0, count)
+	count := len(cmd.Config.TemplateByOnce) + len(cmd.Config.TemplateToTableLoop)
+	paths := make([]string, 0, count)
 	uniqMap := make(map[string]bool, count)
 	appendPath := func(path string) {
 		if path == "" {
@@ -265,7 +267,7 @@ func getFormatTargetPaths(cmd *commands.Command) []string {
 		if len(ss) <= 1 {
 			return
 		}
-		addPath := fmt.Sprintf("%s/%s", cmd.Config.OutputSourcePath, strings.Join(ss[:len(ss)-1],"/"))
+		addPath := fmt.Sprintf("%s/%s", cmd.Config.OutputSourcePath, strings.Join(ss[:len(ss)-1], "/"))
 		if _, ok := uniqMap[addPath]; ok {
 			return
 		}
