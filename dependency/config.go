@@ -31,6 +31,8 @@ type (
 		User     string `json:"user"`
 		Password string `json:"password"`
 		DbName   string `json:"dbName"`
+		Host     string `json:"host"`
+		Port     string `json:"port"`
 	}
 	CustomColumnType struct {
 		Type         string `json:"type"`
@@ -74,7 +76,7 @@ func newConfig() Config {
 		OutputSourcePath:  "./src",
 		InputTemplatePath: "./template",
 		TemplateByOnce:    []TemplateFile{
-		// {Name: "model.tpl", ExportName: "model/model.go"}, // dao/model.go
+			// {Name: "model.tpl", ExportName: "model/model.go"}, // dao/model.go
 		},
 		TemplateToTableLoop: []TemplateFile{
 			{Name: "dao_xxx.tpl", ExportName: "dao/{name}.go", Overwrite: false},        // dao/channel.go

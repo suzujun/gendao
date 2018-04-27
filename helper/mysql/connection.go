@@ -14,15 +14,19 @@ type (
 		user     string
 		password string
 		dbname   string
+		host     string
+		port     string
 		db       *sql.DB
 	}
 )
 
-func NewConnection(user, password, dbname string, close bool) (*Connection, error) {
+func NewConnection(user, password, dbname, host, port string, close bool) (*Connection, error) {
 	con := Connection{
 		user:     user,
 		password: password,
 		dbname:   dbname,
+		host:     host,
+		port:     port,
 	}
 	if err := con.Open(); err != nil {
 		return nil, err
@@ -38,7 +42,15 @@ func (con *Connection) Open() error {
 		if con.dbname == "" {
 			return errors.New("No database name selected in config")
 		}
-		db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@/%s", con.user, con.password, con.dbname))
+		var dataSourceName string
+		if con.host != "" && con.port != "" {
+			dataSourceName = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", con.user, con.password, con.host, con.port, con.dbname)
+		} else if con.host != "" {
+			dataSourceName = fmt.Sprintf("%s:%s@tcp(%s)/%s", con.user, con.password, con.host, con.dbname)
+		} else {
+			dataSourceName = fmt.Sprintf("%s:%s@/%s", con.user, con.password, con.dbname)
+		}
+		db, err := sql.Open("mysql", dataSourceName)
 		if err != nil {
 			return err
 		}
