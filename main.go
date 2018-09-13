@@ -18,6 +18,20 @@ import (
 
 func main() {
 
+	hostFlag := cli.StringFlag{
+		Name:  "host",
+		Usage: "target host name",
+	}
+	HFlag := hostFlag
+	HFlag.Name = "H"
+
+	portFlag := cli.StringFlag{
+		Name:  "port",
+		Usage: "target port",
+	}
+	PFlag := portFlag
+	PFlag.Name = "P"
+
 	userFlag := cli.StringFlag{
 		Name:  "user",
 		Usage: "User name to connect to mysql",
@@ -57,8 +71,8 @@ func main() {
 			Usage:  "Generate initialized config json",
 			Action: initAction,
 			Flags: []cli.Flag{
-				uFlag, pFlag, dFlag,
-				userFlag, passwordFlag, databaseFlag,
+				HFlag, PFlag, uFlag, pFlag, dFlag,
+				hostFlag, portFlag, userFlag, passwordFlag, databaseFlag,
 			},
 		},
 		{
@@ -97,10 +111,12 @@ func getFlag(c *cli.Context, names ...string) string {
 }
 
 func initAction(c *cli.Context) error {
+	host := getFlag(c, "host", "H")
+	port := getFlag(c, "port", "P")
 	user := getFlag(c, "user", "u")
 	password := getFlag(c, "password", "p")
 	dbname := getFlag(c, "database", "d")
-	b, err := dependency.NewConfig(user, password, dbname).ExportJSON()
+	b, err := dependency.NewConfig(host, port, user, password, dbname).ExportJSON()
 	if err != nil {
 		return err
 	}

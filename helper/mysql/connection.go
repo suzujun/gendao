@@ -11,6 +11,8 @@ import (
 
 type (
 	Connection struct {
+		host     string
+		port     string
 		user     string
 		password string
 		dbname   string
@@ -18,8 +20,10 @@ type (
 	}
 )
 
-func NewConnection(user, password, dbname string, close bool) (*Connection, error) {
+func NewConnection(host, port, user, password, dbname string, close bool) (*Connection, error) {
 	con := Connection{
+		host:     host,
+		port:     port,
 		user:     user,
 		password: password,
 		dbname:   dbname,
@@ -38,7 +42,7 @@ func (con *Connection) Open() error {
 		if con.dbname == "" {
 			return errors.New("No database name selected in config")
 		}
-		db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@/%s", con.user, con.password, con.dbname))
+		db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", con.user, con.password, con.host, con.port, con.dbname))
 		if err != nil {
 			return err
 		}

@@ -41,7 +41,7 @@ func NewCommandFromJSON(configPath, dbName string) (*Command, error) {
 // GenerateJSON generate json file
 func (cmd Command) GenerateJSON() error {
 	dbconf := cmd.Config.MysqlConfig
-	con, err := mysql.NewConnection(dbconf.User, dbconf.Password, dbconf.DbName, false)
+	con, err := mysql.NewConnection(dbconf.Host, dbconf.Port, dbconf.User, dbconf.Password, dbconf.DbName, false)
 	if err != nil {
 		return err
 	}

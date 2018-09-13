@@ -40,9 +40,11 @@ $ gendao gen config.json -t tablename1,tablename2
 ### gendao init
 Create initialized JSON file.
 
-* `user` - user name to connect to the database (`root` by default)
-* `password` - password to connect to the database (empty value by default)
-* `database` - database to be processed (The value of the config is used as the default)
+* `host` or `H` - host name to connect to the database (`localhost` by default)
+* `port` or `P` - port to connect to the database (`3306` by default)
+* `user` or `u` - user name to connect to the database (`root` by default)
+* `password` or `p` - password to connect to the database (empty value by default)
+* `database` or `d` - database to be processed (The value of the config is used as the default)
 
 ### gendao pull [config name]
 Generate a JSON of table struct. This command has these flag options.

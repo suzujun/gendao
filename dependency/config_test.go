@@ -11,11 +11,13 @@ import (
 func TestConfig_NewConfig(t *testing.T) {
 	assert := assert.New(t)
 
-	conf := NewConfig("", "", "")
+	conf := NewConfig("", "", "", "", "")
 	assert.Equal(conf, newConfig())
 
-	conf = NewConfig("test-user", "test-pass", "test-db")
+	conf = NewConfig("test-host", "3306", "test-user", "test-pass", "test-db")
 	assert.NotEqual(conf, newConfig())
+	assert.Equal(conf.MysqlConfig.Host, "test-host")
+	assert.Equal(conf.MysqlConfig.Port, "3306")
 	assert.Equal(conf.MysqlConfig.User, "test-user")
 	assert.Equal(conf.MysqlConfig.Password, "test-pass")
 	assert.Equal(conf.MysqlConfig.DbName, "test-db")
@@ -28,14 +30,14 @@ func TestUtil_Write(t *testing.T) {
 
 	assert := assert.New(t)
 
-	conf := NewConfig("", "", "")
+	conf := NewConfig("", "", "", "", "")
 	assert.NoError(conf.Write(path + "/config.json"))
 }
 
 func TestUtil_ParseJSON(t *testing.T) {
 	assert := assert.New(t)
 
-	data := NewConfig("test-user", "test-pass", "test-db")
+	data := NewConfig("test-localhost", "3306", "test-user", "test-pass", "test-db")
 	b, err := json.Marshal(data)
 	assert.NoError(err)
 	assert.NotNil(b)
