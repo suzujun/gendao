@@ -28,6 +28,8 @@ type (
 		Overwrite  bool   `json:"overwrite"`
 	}
 	MysqlConfig struct {
+		Host     string `json:"host"`
+		Port     string `json:"port"`
 		User     string `json:"user"`
 		Password string `json:"password"`
 		DbName   string `json:"dbName"`
@@ -40,8 +42,14 @@ type (
 	}
 )
 
-func NewConfig(user, password, database string) Config {
+func NewConfig(host, port, user, password, database string) Config {
 	conf := newConfig()
+	if host != "" {
+		conf.MysqlConfig.Host = host
+	}
+	if port != "" {
+		conf.MysqlConfig.Port = port
+	}
 	if user != "" {
 		conf.MysqlConfig.User = user
 	}
@@ -58,6 +66,8 @@ func newConfig() Config {
 	// default setting values
 	return Config{
 		MysqlConfig: MysqlConfig{
+			Host:     "localhost",
+			Port:     "3306",
 			User:     "root",
 			Password: "",
 			DbName:   "",
